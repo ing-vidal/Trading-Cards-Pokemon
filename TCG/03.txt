@@ -1,0 +1,872 @@
+PARTE 3 — ADMIN PANEL & STUDIO SPECIFICATION
+
+Objetivo: Crear la herramienta donde se administran las cartas.
+
+Contenido:
+
+Dashboard administrativo.
+Gestión de cartas.
+Subida de imágenes.
+Editor de información.
+Gestión de rarezas.
+Aplicación de efectos.
+Vista previa.
+Editor visual.
+
+Módulos:
+
+Card Manager
+Rarity Manager
+Effect Manager
+Asset Manager
+Publishing Manager
+comienza
+
+TCG Vision — Complete Development Documentation
+PARTE 3 — ADMIN PANEL & STUDIO SPECIFICATION
+Objetivo
+Definir la herramienta administrativa interna del sistema TCG Vision.
+
+El Admin Panel & Studio será el centro de control utilizado para crear, editar, organizar, personalizar y publicar cartas digitales del catálogo.
+
+El objetivo principal es permitir que un administrador pueda gestionar todo el ciclo de vida de una carta:
+
+Creación
+   ↓
+Carga de Assets
+   ↓
+Configuración de Datos
+   ↓
+Aplicación de Rareza y Efectos
+   ↓
+Vista Previa
+   ↓
+Publicación
+El Studio debe funcionar como una herramienta similar a un CMS especializado para cartas coleccionables, permitiendo controlar tanto información estructurada como elementos visuales.
+
+1. Alcance del Admin Panel
+El panel administrativo permitirá:
+
+Crear cartas nuevas.
+
+Editar cartas existentes.
+
+Administrar colecciones.
+
+Administrar categorías.
+
+Configurar rarezas.
+
+Aplicar efectos visuales.
+
+Gestionar imágenes.
+
+Preparar cartas para publicación.
+
+Controlar estados del catálogo.
+
+Revisar previews antes de publicar.
+
+2. Usuarios del Sistema Administrativo
+2.1 Administrador
+Usuario con control total.
+
+Permisos:
+
+Crear cartas.
+
+Editar cualquier información.
+
+Gestionar usuarios.
+
+Publicar contenido.
+
+Configurar parámetros globales.
+
+2.2 Editor de Contenido
+Usuario encargado del catálogo.
+
+Permisos:
+
+Crear cartas.
+
+Modificar información.
+
+Subir imágenes.
+
+Editar colecciones.
+
+No puede:
+
+Modificar configuración del sistema.
+
+Administrar usuarios.
+
+2.3 Diseñador Visual
+Usuario enfocado en presentación.
+
+Permisos:
+
+Subir assets.
+
+Aplicar efectos.
+
+Configurar frames.
+
+Crear previews.
+
+3. Arquitectura General del Admin Panel
+Estructura:
+
+Admin Panel
+│
+├── Dashboard
+│
+├── Card Manager
+│
+├── Rarity Manager
+│
+├── Effect Manager
+│
+├── Asset Manager
+│
+├── Publishing Manager
+│
+└── System Settings
+4. Dashboard Administrativo
+Objetivo
+Proporcionar una vista general del estado del sistema.
+
+Información principal
+Estadísticas
+Ejemplo:
+
+Total Cards
+
+2,540
+
+
+Published
+
+1,850
+
+
+Drafts
+
+420
+
+
+Hidden
+
+270
+
+
+Collections
+
+35
+Widgets del Dashboard
+Cartas recientes
+Lista:
+
+Dragon Knight EX
+
+Created:
+02/08/2026
+
+Status:
+Draft
+Actividad reciente
+Ejemplo:
+
+User Rafael created card:
+
+"Dark Phoenix"
+
+10 minutes ago
+Estado del catálogo
+Visualización:
+
+Cards
+████████░░ 80%
+
+Assets
+███████░░░ 70%
+
+Published
+█████░░░░░ 50%
+5. Card Manager
+Objetivo
+Módulo principal para administrar cartas.
+
+Funciones principales
+Crear carta
+Proceso:
+
+New Card
+ ↓
+Basic Information
+ ↓
+Images
+ ↓
+Attributes
+ ↓
+Effects
+ ↓
+Preview
+ ↓
+Save
+Información de una carta
+Modelo:
+
+Card
+{
+ id
+
+ name
+
+ description
+
+ category
+
+ collection
+
+ rarity
+
+ type
+
+ hp
+
+ attack
+
+ defense
+
+ abilities
+
+ artwork
+
+ frame
+
+ effects
+
+ status
+
+ created_at
+
+ updated_at
+}
+Editor de Información
+Formulario:
+
+Datos básicos
+Card Name
+
+[________________]
+
+
+Description
+
+[________________]
+
+
+Category
+
+[ Pokemon ]
+
+Collection
+
+[ Base Set ]
+
+Rarity
+
+[ Ultra Rare ]
+Estadísticas
+Ejemplo:
+
+HP
+
+120
+
+
+Attack
+
+90
+
+
+Defense
+
+70
+Habilidades
+Editor:
+
+Ability 1
+
+Name:
+Fire Blast
+
+
+Description:
+
+Deals 100 damage
+Estados de Carta
+Cada carta tendrá un estado:
+
+Draft
+Carta en construcción.
+
+Visible:
+
+❌ Público
+
+Uso:
+
+Desarrollo
+
+Revisión
+
+Published
+Carta disponible públicamente.
+
+Visible:
+
+✅ Público
+
+Hidden
+Carta oculta.
+
+Visible:
+
+❌ Catálogo
+
+Uso:
+
+Retirada temporal
+
+Eventos especiales
+
+Flujo:
+
+Draft
+
+ ↓
+
+Review
+
+ ↓
+
+Published
+
+ ↓
+
+Hidden
+6. Gestión de Imágenes
+Asset Upload
+El sistema permitirá cargar:
+
+Artwork principal.
+
+Background.
+
+Frame.
+
+Iconos.
+
+Logos.
+
+Efectos visuales.
+
+Formatos soportados
+Imágenes:
+
+PNG
+WEBP
+JPG
+SVG
+Organización
+Ejemplo:
+
+/assets
+
+/cards
+
+   /artwork
+
+      dragon.png
+
+
+   /frames
+
+      legendary.png
+
+
+   /effects
+
+      holo.png
+7. Asset Manager
+Objetivo
+Administrar recursos visuales.
+
+Módulos:
+
+Asset Manager
+
+|
+├── Images
+|
+├── Frames
+|
+├── Icons
+|
+├── Backgrounds
+|
+└── Animations
+Funciones
+Upload
+Subir archivos.
+
+Preview
+Visualización:
+
++----------------+
+
+   IMAGE
+
++----------------+
+Metadata
+Cada asset tendrá:
+
+Asset
+
+{
+ id
+
+ filename
+
+ type
+
+ size
+
+ url
+
+ created_at
+}
+8. Rarity Manager
+Objetivo
+Administrar niveles de rareza.
+
+Ejemplo:
+
+Common
+
+Uncommon
+
+Rare
+
+Ultra Rare
+
+Secret Rare
+
+Legendary
+Cada rareza contiene:
+
+Rarity
+
+{
+ id
+
+ name
+
+ color
+
+ frame
+
+ effect
+
+ probability
+}
+Ejemplo:
+Legendary
+Name:
+
+Legendary
+
+
+Frame:
+
+Gold Frame
+
+
+Effect:
+
+Animated Shine
+
+
+Color:
+
+Gold
+9. Effect Manager
+Objetivo
+Crear y administrar efectos visuales.
+
+Tipos de efectos:
+
+Holographic
+Ejemplo:
+
+Movimiento arcoiris
+Shine
+Ejemplo:
+
+Brillo dinámico
+Texture
+Ejemplo:
+
+Textura metálica
+Animation
+Ejemplo:
+
+Partículas flotando
+Modelo:
+
+Effect
+
+{
+ id
+
+ name
+
+ type
+
+ asset
+
+ intensity
+
+ animation
+
+}
+10. Editor Visual
+Objetivo
+Permitir personalizar la apariencia final de una carta.
+
+Inspiración:
+
+Photoshop simplificado.
+
+Canva.
+
+Card builder.
+
+Layout del editor
+--------------------------------
+
+Toolbar
+
+
+Canvas
+
+
+Properties Panel
+
+
+Layers
+
+
+--------------------------------
+Canvas
+Vista:
+
++----------------+
+
+|                |
+|                |
+|     CARD       |
+|                |
+|                |
+
++----------------+
+Capas
+Sistema Layer Based:
+
+Layers
+
+Artwork
+
+Frame
+
+Text
+
+Effects
+
+Icons
+
+Background
+Herramientas
+Posición
+X
+Y
+Escala
+Width
+Height
+Rotación
+0° - 360°
+Opacidad
+0% - 100%
+11. Vista Previa
+Antes de publicar:
+
+Card Preview
+
+
+Front View
+
+3D View
+
+Mobile View
+Preview interactivo
+Funciones:
+
+Zoom.
+
+Rotación.
+
+Animaciones.
+
+Efectos activos.
+
+12. Publishing Manager
+Objetivo
+Controlar publicación del catálogo.
+
+Funciones:
+
+Publicar cartas.
+
+Ocultar cartas.
+
+Programar publicaciones.
+
+Revisar cambios.
+
+Estados
+Draft
+
+↓
+
+Pending Review
+
+↓
+
+Approved
+
+↓
+
+Published
+Historial de cambios
+Ejemplo:
+
+Card:
+
+Dragon EX
+
+
+Changes:
+
+- Updated Artwork
+- Changed Rarity
+
+User:
+
+Admin
+
+
+Date:
+
+02/08/2026
+13. Base de Datos Administrativa
+Tablas relacionadas:
+
+Cards
+
+Categories
+
+Collections
+
+Rarities
+
+Effects
+
+Assets
+
+Card_Effects
+
+Card_Assets
+
+Publishing_History
+
+Users
+
+Roles
+Relaciones
+Cards
+Card
+
+belongs_to
+
+Category
+
+
+belongs_to
+
+Collection
+
+
+belongs_to
+
+Rarity
+Card Effects
+Relación muchos a muchos:
+
+Card
+
+<------>
+
+Effects
+14. API Requirements
+Endpoints principales:
+
+Cards
+GET
+
+/api/cards
+
+
+POST
+
+/api/cards
+
+
+PUT
+
+/api/cards/:id
+
+
+DELETE
+
+/api/cards/:id
+Assets
+POST
+
+/api/assets/upload
+
+
+GET
+
+/api/assets
+Rarity
+GET
+
+/api/rarities
+
+
+POST
+
+/api/rarities
+Publishing
+POST
+
+/api/cards/:id/publish
+
+
+POST
+
+/api/cards/:id/hide
+15. Frontend Admin Structure
+Propuesta:
+
+apps/admin
+
+src
+
+├── dashboard
+
+├── cards
+
+│   ├── list
+
+│   ├── create
+
+│   └── editor
+
+
+├── rarity
+
+├── effects
+
+├── assets
+
+└── publishing
+16. Componentes UI Reutilizables
+Paquete:
+
+packages/ui
+Componentes:
+
+AdminTable
+
+FormField
+
+ImageUploader
+
+CardPreview
+
+LayerPanel
+
+EffectSelector
+
+RarityBadge
+
+StatusBadge
+
+Modal
+
+Drawer
+17. Tecnologías Recomendadas
+Frontend
+Next.js
+
+React
+
+TypeScript
+
+TailwindCSS
+
+shadcn/ui
+Editor visual
+Opciones:
+
+Fabric.js
+
+Konva.js
+
+PixiJS
+Upload
+Opciones:
+
+Cloudinary
+
+AWS S3
+
+Supabase Storage
+Animaciones
+Framer Motion
+
+GSAP
+18. Resultado esperado
+Al finalizar esta parte del sistema se tendrá:
+
+✅ Panel administrativo completo.
+✅ Editor de cartas.
+✅ Gestión de rarezas.
+✅ Sistema de efectos visuales.
+✅ Administración de imágenes.
+✅ Previsualización profesional.
+✅ Flujo de publicación controlado.

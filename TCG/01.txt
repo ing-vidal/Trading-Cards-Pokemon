@@ -1,0 +1,752 @@
+TCG Vision — Complete Development Documentation
+PARTE 1 — PROJECT FOUNDATION & ARCHITECTURE
+
+Objetivo: Definir la base técnica del proyecto.
+
+Contenido:
+
+Visión general del producto.
+Alcance y límites del proyecto.
+Casos de uso.
+Usuarios del sistema.
+Arquitectura general.
+Stack tecnológico recomendado.
+Estructura del repositorio.
+Monorepo (si aplica).
+Convenciones de código.
+Ambientes:
+Development
+Staging
+Production
+Configuración inicial.
+Reglas para agentes IA (Claude/Gemini).
+comienza
+
+TCG Vision — Complete Development Documentation
+PARTE 1 — PROJECT FOUNDATION & ARCHITECTURE
+1. Visión General del Producto
+1.1 Nombre del Proyecto
+TCG Vision
+
+1.2 Descripción General
+TCG Vision es una plataforma digital especializada en la gestión, visualización y análisis de cartas coleccionables (Trading Card Games / TCG).
+
+El objetivo principal del sistema es proporcionar una experiencia moderna para coleccionistas, jugadores y administradores, permitiendo:
+
+Explorar cartas mediante un catálogo visual.
+
+Consultar información detallada de cada carta.
+
+Organizar colecciones personales.
+
+Gestionar inventarios.
+
+Analizar características de cartas.
+
+Clasificar cartas mediante atributos como:
+
+Rareza.
+
+Tipo.
+
+Expansión.
+
+Valor.
+
+Estado.
+
+Disponibilidad.
+
+La plataforma estará diseñada pensando en escalabilidad futura, permitiendo agregar nuevos juegos TCG, integraciones externas, inteligencia artificial, análisis de mercado y funcionalidades avanzadas.
+
+2. Objetivo del Proyecto
+Construir una plataforma profesional para el ecosistema TCG que permita centralizar información de cartas coleccionables mediante una arquitectura moderna, mantenible y preparada para crecimiento.
+
+Los objetivos principales son:
+
+Objetivo funcional
+Crear una aplicación donde usuarios puedan:
+
+Consultar cartas.
+
+Buscar cartas específicas.
+
+Filtrar resultados.
+
+Crear colecciones.
+
+Administrar cartas favoritas.
+
+Registrar cartas propias.
+
+Visualizar estadísticas.
+
+Objetivo técnico
+Crear una base sólida utilizando:
+
+Arquitectura modular.
+
+Separación frontend/backend.
+
+API escalable.
+
+Base de datos estructurada.
+
+Componentes reutilizables.
+
+Buenas prácticas de desarrollo.
+
+3. Alcance del Proyecto
+3.1 Incluido en la primera versión (MVP)
+Catálogo de cartas
+El sistema permitirá:
+
+Listado de cartas.
+
+Vista detalle.
+
+Búsqueda.
+
+Filtros.
+
+Filtros iniciales:
+
+Nombre.
+
+Juego.
+
+Expansión.
+
+Rareza.
+
+Tipo.
+
+Número de colección.
+
+Gestión de usuarios
+Usuarios podrán:
+
+Registrarse.
+
+Iniciar sesión.
+
+Administrar perfil.
+
+Gestionar colección personal.
+
+Colección personal
+Funciones:
+
+Agregar cartas.
+
+Eliminar cartas.
+
+Marcar favoritas.
+
+Indicar cantidad.
+
+Registrar condición.
+
+Ejemplo:
+
+Carta:
+Charizard VMAX
+
+Cantidad:
+2
+
+Estado:
+Near Mint
+
+Colección:
+Favoritos
+Panel administrativo
+Los administradores podrán:
+
+Crear cartas.
+
+Editar información.
+
+Administrar usuarios.
+
+Gestionar expansiones.
+
+Gestionar rarezas.
+
+Revisar estadísticas.
+
+4. Límites del Proyecto
+Para evitar crecimiento descontrolado, la primera versión NO incluirá:
+
+Pagos
+No habrá:
+
+Marketplace.
+
+Compra directa.
+
+Checkout.
+
+Procesamiento financiero.
+
+Envíos
+No se manejará:
+
+Logística.
+
+Tracking.
+
+Paquetería.
+
+Comunidad
+Fuera del MVP:
+
+Chat entre usuarios.
+
+Foros.
+
+Mensajería.
+
+Seguidores.
+
+IA avanzada
+No estará inicialmente:
+
+Reconocimiento automático de cartas mediante cámara.
+
+Predicción de precios.
+
+Evaluación automática de estado.
+
+Estas funciones quedan como futuras versiones.
+
+5. Casos de Uso
+Usuario visitante
+UC-001 Explorar catálogo
+Actor:
+
+Visitante
+Flujo:
+
+Usuario entra al sitio.
+
+Consulta catálogo.
+
+Visualiza cartas disponibles.
+
+Puede abrir detalle.
+
+Resultado:
+
+Usuario conoce las cartas disponibles.
+
+UC-002 Buscar carta
+Actor:
+
+Visitante
+Flujo:
+
+Usuario escribe nombre.
+
+Sistema consulta catálogo.
+
+Muestra coincidencias.
+
+Ejemplo:
+
+Busqueda:
+Pikachu
+
+Resultado:
+
+Pikachu V
+Pikachu EX
+Pikachu Base Set
+Usuario registrado
+UC-003 Crear colección
+Flujo:
+
+Usuario inicia sesión.
+
+Busca carta.
+
+Selecciona:
+
+Agregar a colección
+Define:
+
+Cantidad.
+
+Estado.
+
+Notas.
+
+UC-004 Administrar colección
+Usuario puede:
+
+Ver colección.
+
+Editar cartas.
+
+Eliminar cartas.
+
+Administrador
+UC-005 Administrar catálogo
+Administrador puede:
+
+Crear:
+
+Carta
+ |
+ ├── Nombre
+ ├── Juego
+ ├── Expansión
+ ├── Rareza
+ ├── Imagen
+ ├── Datos técnicos
+6. Usuarios del Sistema
+6.1 Visitante
+Permisos:
+
+READ ONLY
+Puede:
+
+✓ Ver cartas
+✓ Buscar
+✓ Filtrar
+
+No puede:
+
+✗ Crear colección
+✗ Administrar datos
+
+6.2 Usuario Registrado
+Rol:
+
+USER
+Permisos:
+
+✓ Perfil
+✓ Colección
+✓ Favoritos
+✓ Historial
+
+6.3 Administrador
+Rol:
+
+ADMIN
+Permisos:
+
+✓ Usuarios
+✓ Cartas
+✓ Categorías
+✓ Configuración
+
+7. Arquitectura General
+TCG Vision utilizará una arquitectura:
+
+                 CLIENT
+                   |
+                   |
+             Frontend Web
+                   |
+              REST API
+                   |
+              Backend
+                   |
+             ORM Layer
+                   |
+             Database
+Arquitectura propuesta
+TCG Vision
+
+├── Frontend
+│
+│   Next.js
+│
+│
+├── Backend
+│
+│   NestJS
+│
+│
+├── Database
+│
+│   PostgreSQL
+│
+│
+├── ORM
+│
+│   Prisma
+│
+│
+└── Infrastructure
+    Docker
+    CI/CD
+8. Stack Tecnológico Recomendado
+Frontend
+Framework
+Next.js
+
+Motivos:
+
+SSR.
+
+Excelente SEO.
+
+Performance.
+
+Ecosistema maduro.
+
+Lenguaje
+TypeScript
+Beneficios:
+
+Seguridad de tipos.
+
+Mejor mantenimiento.
+
+Mejor experiencia con IA.
+
+UI
+Recomendado:
+
+Tailwind CSS
+shadcn/ui
+Ventajas:
+
+Componentes reutilizables.
+
+Diseño consistente.
+
+Desarrollo rápido.
+
+Backend
+Framework
+NestJS
+
+Razones:
+
+Arquitectura modular.
+
+Inyección de dependencias.
+
+Escalable.
+
+Ideal para APIs empresariales.
+
+API
+Tipo:
+
+REST API
+Formato:
+
+JSON
+Ejemplo:
+
+GET
+
+/api/cards
+Respuesta:
+
+{
+ "id":1,
+ "name":"Charizard",
+ "rarity":"Secret Rare"
+}
+Base de datos
+PostgreSQL
+Uso:
+
+Usuarios.
+
+Cartas.
+
+Colecciones.
+
+Expansiones.
+
+Rarezas.
+
+ORM
+Prisma
+Responsabilidades:
+
+Modelado.
+
+Migraciones.
+
+Queries.
+
+Seguridad.
+
+9. Estructura del Repositorio
+Se utilizará arquitectura Monorepo.
+
+Estructura:
+
+tcg-vision/
+
+├── apps/
+│
+│   ├── web/
+│   │   └── Next.js
+│   │
+│   └── api/
+│       └── NestJS
+│
+│
+├── packages/
+│
+│   ├── ui/
+│   │
+│   ├── types/
+│   │
+│   ├── utils/
+│   │
+│   └── config/
+│
+│
+├── prisma/
+│
+├── docs/
+│
+├── docker/
+│
+├── .github/
+│
+├── package.json
+├── pnpm-workspace.yaml
+└── turbo.json
+10. Monorepo
+Herramienta
+Se utilizará:
+
+Turborepo
+
+junto con:
+
+pnpm workspaces
+Ventajas
+Permite compartir:
+
+packages/ui
+Componentes:
+
+Button
+Card
+Modal
+Input
+Tipos compartidos:
+
+packages/types
+Ejemplo:
+
+interface Card {
+ id:number;
+ name:string;
+ rarity:string;
+}
+11. Convenciones de Código
+Naming
+Variables
+camelCase
+
+Ejemplo:
+
+cardName
+Componentes React
+PascalCase
+
+Ejemplo:
+
+CardDetail.tsx
+Archivos
+kebab-case
+
+Ejemplo:
+
+card-detail.ts
+Git
+Formato:
+
+feat:
+fix:
+docs:
+refactor:
+test:
+chore:
+Ejemplo:
+
+feat(cards): add card search
+12. Ambientes
+Development
+Uso:
+
+Desarrollo local.
+
+Configuración:
+
+.env.development
+Características:
+
+Debug activo.
+
+Logs completos.
+
+Base local.
+
+Staging
+Uso:
+
+Pruebas antes de producción.
+
+Configuración:
+
+.env.staging
+Características:
+
+Datos similares a producción.
+
+Pruebas QA.
+
+Production
+Uso:
+
+Usuarios finales.
+
+Configuración:
+
+.env.production
+Características:
+
+Seguridad máxima.
+
+Logs controlados.
+
+Optimización.
+
+13. Configuración Inicial
+Requisitos
+Instalar:
+
+Node.js >=24
+
+pnpm >=11
+
+Docker
+
+Git
+Inicialización
+Crear proyecto:
+
+pnpm create turbo@latest
+Instalar dependencias:
+
+pnpm install
+Crear aplicaciones:
+
+apps/web
+apps/api
+Configurar:
+
+PostgreSQL
+Prisma
+Docker
+Environment variables
+14. Reglas para Agentes IA (Claude / Gemini / Antigravity IDE)
+Principios generales
+Los agentes deberán:
+
+No modificar arquitectura sin autorización.
+
+Respetar estructura del monorepo.
+
+Crear código modular.
+
+Evitar duplicación.
+
+Mantener TypeScript estricto.
+
+Reglas Frontend
+Siempre:
+
+Usar componentes reutilizables.
+
+Evitar lógica dentro de componentes visuales.
+
+Separar:
+
+components/
+hooks/
+services/
+types/
+Reglas Backend
+Siempre:
+
+Separar:
+
+controller
+service
+repository
+dto
+entity
+Base de datos
+Nunca:
+
+Modificar directamente producción.
+
+Crear tablas sin migración Prisma.
+
+Proceso:
+
+schema.prisma
+
+↓
+
+migration
+
+↓
+
+database
+Documentación obligatoria
+Cada nueva funcionalidad debe incluir:
+
+docs/
+
+feature-name.md
+Incluyendo:
+
+Objetivo.
+
+Arquitectura.
+
+Cambios.
+
+API.
+
+Consideraciones.
+
+Regla principal para IA
+Antes de implementar:
+
+Analizar arquitectura existente.
+
+Revisar código actual.
+
+Proponer cambios.
+
+Esperar aprobación si afecta estructura.
+
+Estado final esperado Parte 1
+Al terminar esta fase TCG Vision tendrá definido:
+
+✅ Arquitectura profesional
+✅ Monorepo preparado
+✅ Stack tecnológico
+✅ Roles de usuario
+✅ Ambientes
+✅ Reglas de desarrollo
+✅ Base para trabajar con Claude/Gemini/Antigravity IDE
+
+FIN PARTE 1 — PROJECT FOUNDATION & ARCHITECTURE
