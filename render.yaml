@@ -7,7 +7,7 @@ services:
     buildCommand: |
       corepack enable
       pnpm install --frozen-lockfile
-      pnpm --filter @tcg/api exec prisma generate
+      pnpm prisma generate --schema=prisma/schema.prisma
       pnpm --filter @tcg/api build
     startCommand: node apps/api/dist/main.js
     envVars:
