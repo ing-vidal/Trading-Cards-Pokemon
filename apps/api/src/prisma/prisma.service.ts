@@ -12,6 +12,13 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   }
 
   async onModuleInit() {
+    const databaseUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+
+    if (!databaseUrl) {
+      this.logger.warn('DATABASE_URL no configurada; se omite la conexión con PostgreSQL.');
+      return;
+    }
+
     try {
       await this.$connect();
       this.logger.log('Conexión con PostgreSQL (Prisma) establecida exitosamente.');
@@ -26,6 +33,12 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   }
 
   async ping(): Promise<boolean> {
+    const databaseUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+
+    if (!databaseUrl) {
+      return false;
+    }
+
     try {
       await this.$queryRaw`SELECT 1`;
       return true;

@@ -4,10 +4,16 @@ import Redis from 'ioredis';
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(RedisService.name);
-  private client: Redis;
+  private client: Redis | null = null;
 
   onModuleInit() {
-    const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+    const redisUrl = process.env.REDIS_URL;
+
+    if (!redisUrl) {
+      this.logger.warn('REDIS_URL no configurada; se omite la conexión con Redis.');
+      return;
+    }
+
     this.client = new Redis(redisUrl, {
       lazyConnect: true,
       maxRetriesPerRequest: 3,
@@ -33,11 +39,15 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  getClient(): Redis {
+  getClient(): Redis | null {
     return this.client;
   }
 
   async get(key: string): Promise<string | null> {
+    if (!this.client) {
+      return null;
+    }
+
     try {
       return await this.client.get(key);
     } catch {
@@ -46,6 +56,10 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   }
 
   async set(key: string, value: string, ttlSeconds?: number): Promise<void> {
+    if (!this.client) {
+      return;
+    }
+
     try {
       if (ttlSeconds) {
         await this.client.set(key, value, 'EX', ttlSeconds);
@@ -58,6 +72,10 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   }
 
   async del(key: string): Promise<void> {
+    if (!this.client) {
+      return;
+    }
+
     try {
       await this.client.del(key);
     } catch (err) {
@@ -66,6 +84,10 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   }
 
   async ping(): Promise<boolean> {
+    if (!this.client) {
+      return false;
+    }
+
     try {
       const res = await this.client.ping();
       return res === 'PONG';
