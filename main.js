@@ -1,4 +1,4 @@
 const path = require('path');
 
-process.chdir(path.join(__dirname, 'apps', 'api'));
-require('./dist/main.js');
+const entry = path.join(__dirname, 'apps', 'api', 'dist', 'main.js');
+require(entry);
