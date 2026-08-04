@@ -14,21 +14,17 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api');
 
-  app.get(['/', '/health'], (req: any, res: any) => {
+  const rootResponse = (_req: any, res: any) => {
     res.json({
       message: 'TCG Vision API is running',
       status: 'ok',
       timestamp: new Date().toISOString(),
     });
-  });
+  };
 
-  app.get('/api', (req: any, res: any) => {
-    res.json({
-      message: 'TCG Vision API is running',
-      status: 'ok',
-      timestamp: new Date().toISOString(),
-    });
-  });
+  app.get('/', rootResponse);
+  app.get('/health', rootResponse);
+  app.get('/api', rootResponse);
 
   // Security Headers Middleware
   app.use((req: any, res: any, next: any) => {
