@@ -1,0 +1,268 @@
+// Prisma Schema for TCG Vision Platform
+// PostgreSQL Database Schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RoleType {
+  SUPER_ADMIN
+  CONTENT_MANAGER
+  DESIGNER
+  CUSTOMER
+}
+
+enum CardStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum RarityLevel {
+  STAR_1
+  STAR_2
+  GOLD
+  RAINBOW
+  SECRET
+  PROMO
+}
+
+enum AssetType {
+  IMAGE
+  MODEL_3D
+  TEXTURE
+  VIDEO
+  ANIMATION
+  SHADER
+}
+
+enum ProductCondition {
+  RAW
+  NEAR_MINT
+  PSA_10
+  LIGHTLY_PLAYED
+  HEAVILY_PLAYED
+}
+
+enum ProductStatus {
+  AVAILABLE
+  RESERVED
+  OUT_OF_STOCK
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+model Role {
+  id          String   @id @default(uuid())
+  name        RoleType @unique
+  description String?
+  permissions Json     @default("{}")
+  users       User[]
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("roles")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  roleId       String   @map("role_id")
+  role         Role     @relation(fields: [roleId], references: [id])
+  status       String   @default("ACTIVE")
+  orders       Order[]
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model Collection {
+  id          String    @id @default(uuid())
+  name        String
+  slug        String    @unique
+  code        String    @unique
+  releaseDate DateTime? @map("release_date")
+  logo        String?
+  description String?
+  cards       Card[]
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("collections")
+}
+
+model Category {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  description String?
+  image       String?
+  cards       Card[]
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("categories")
+}
+
+model VisualPreset {
+  id          String       @id @default(uuid())
+  name        String
+  shader      String
+  material    String?
+  foil        String?
+  particles   String?
+  animation   String?
+  intensity   Int          @default(50)
+  rarities    Rarity[]
+  cardEffects CardEffect[]
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  @@map("visual_presets")
+}
+
+model Effect {
+  id              String   @id @default(uuid())
+  name            String
+  shaderConfig    Json     @map("shader_config")
+  animationConfig Json     @map("animation_config")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("effects")
+}
+
+model Rarity {
+  id        String        @id @default(uuid())
+  name      String
+  level     RarityLevel   @unique
+  icon      String?
+  color     String?
+  presetId  String?       @map("preset_id")
+  preset    VisualPreset? @relation(fields: [presetId], references: [id])
+  cards     Card[]
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
+
+  @@map("rarities")
+}
+
+model Card {
+  id           String       @id @default(uuid())
+  name         String
+  slug         String       @unique
+  number       String
+  game         String       @default("Pokemon TCG")
+  language     String       @default("English")
+  description  String?
+  hp           Int?
+  attack       Int?
+  defense      Int?
+  abilities    Json?        @default("[]")
+  status       CardStatus   @default(DRAFT)
+  collectionId String       @map("collection_id")
+  collection   Collection   @relation(fields: [collectionId], references: [id])
+  categoryId   String?      @map("category_id")
+  category     Category?    @relation(fields: [categoryId], references: [id])
+  rarityId     String       @map("rarity_id")
+  rarity       Rarity       @relation(fields: [rarityId], references: [id])
+  assets       Asset[]
+  effects      CardEffect[]
+  products     Product[]
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+
+  @@index([collectionId, status])
+  @@index([rarityId])
+  @@map("cards")
+}
+
+model CardEffect {
+  id           String       @id @default(uuid())
+  cardId       String       @map("card_id")
+  card         Card         @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  presetId     String       @map("preset_id")
+  preset       VisualPreset @relation(fields: [presetId], references: [id])
+  customConfig Json         @default("{}") @map("custom_config")
+  createdAt    DateTime     @default(now()) @map("created_at")
+
+  @@map("card_effects")
+}
+
+model Asset {
+  id        String    @id @default(uuid())
+  name      String
+  type      AssetType
+  url       String
+  path      String?
+  size      Int
+  format    String
+  version   String    @default("1.0.0")
+  cardId    String?   @map("card_id")
+  card      Card?     @relation(fields: [cardId], references: [id], onDelete: SetNull)
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  @@map("assets")
+}
+
+model Product {
+  id         String           @id @default(uuid())
+  cardId     String           @map("card_id")
+  card       Card             @relation(fields: [cardId], references: [id])
+  sku        String           @unique
+  condition  ProductCondition @default(NEAR_MINT)
+  price      Decimal          @db.Decimal(10, 2)
+  currency   String           @default("USD")
+  stock      Int              @default(1)
+  status     ProductStatus    @default(AVAILABLE)
+  orderItems OrderItem[]
+  createdAt  DateTime         @default(now()) @map("created_at")
+  updatedAt  DateTime         @updatedAt @map("updated_at")
+
+  @@index([cardId, status])
+  @@index([condition])
+  @@map("products")
+}
+
+model Order {
+  id        String      @id @default(uuid())
+  userId    String?     @map("user_id")
+  user      User?       @relation(fields: [userId], references: [id])
+  status    OrderStatus @default(PENDING)
+  total     Decimal     @db.Decimal(10, 2)
+  items     OrderItem[]
+  createdAt DateTime    @default(now()) @map("created_at")
+  updatedAt DateTime    @updatedAt @map("updated_at")
+
+  @@index([userId, status])
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String   @id @default(uuid())
+  orderId   String   @map("order_id")
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String   @map("product_id")
+  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Int      @default(1)
+  price     Decimal  @db.Decimal(10, 2)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("order_items")
+}
