@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+
 interface CardItem {
   id: string;
   name: string;
@@ -30,7 +32,7 @@ export default function PublicHomePage() {
 
       // Fetch dynamic collections for filter dropdown
       try {
-        const resCol = await fetch('http://localhost:4000/api/collections');
+        const resCol = await fetch(`${API_BASE_URL}/api/collections`);
         if (resCol.ok) {
           const jsonCol = await resCol.json();
           if (Array.isArray(jsonCol)) {
@@ -44,7 +46,7 @@ export default function PublicHomePage() {
       // Fetch dynamic cards from API
       let apiCards: CardItem[] = [];
       try {
-        const resCards = await fetch('http://localhost:4000/api/cards');
+        const resCards = await fetch(`${API_BASE_URL}/api/cards`);
         if (resCards.ok) {
           const jsonCards = await resCards.json();
           if (jsonCards.data && Array.isArray(jsonCards.data)) {

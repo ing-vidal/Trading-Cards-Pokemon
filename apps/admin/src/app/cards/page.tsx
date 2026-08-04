@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+
 interface CardItem {
   id: string;
   name: string;
@@ -47,7 +49,7 @@ export default function CardsAdminPage() {
   // Fetch collections list for select dropdowns
   const fetchCollectionsList = async () => {
     try {
-      const res = await fetch('http://localhost:4000/api/collections');
+      const res = await fetch(`${API_BASE_URL}/api/collections`);
       if (res.ok) {
         const json = await res.json();
         if (Array.isArray(json)) {
@@ -63,7 +65,7 @@ export default function CardsAdminPage() {
   // Fetch rarities list for select dropdowns
   const fetchRaritiesList = async () => {
     try {
-      const res = await fetch('http://localhost:4000/api/rarities');
+      const res = await fetch(`${API_BASE_URL}/api/rarities`);
       if (res.ok) {
         const json = await res.json();
         if (Array.isArray(json)) {
@@ -84,7 +86,7 @@ export default function CardsAdminPage() {
   // Fetch cards from API
   const fetchCardsFromApi = async () => {
     try {
-      const res = await fetch('http://localhost:4000/api/cards');
+      const res = await fetch(`${API_BASE_URL}/api/cards`);
       if (res.ok) {
         const json = await res.json();
         if (json.data && Array.isArray(json.data)) {
@@ -171,7 +173,7 @@ export default function CardsAdminPage() {
 
     let createdApi = false;
     try {
-      const res = await fetch('http://localhost:4000/api/cards', {
+      const res = await fetch(`${API_BASE_URL}/api/cards`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -247,7 +249,7 @@ export default function CardsAdminPage() {
 
     let updatedApi = false;
     try {
-      const res = await fetch(`http://localhost:4000/api/cards/${editingCard.id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/cards/${editingCard.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -295,7 +297,7 @@ export default function CardsAdminPage() {
 
     let deletedApi = false;
     try {
-      const res = await fetch(`http://localhost:4000/api/cards/${deletingCard.id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/cards/${deletingCard.id}`, {
         method: 'DELETE',
       });
       if (res.ok) {
@@ -642,7 +644,7 @@ export default function CardsAdminPage() {
                   <td style={{ padding: '1rem 1.25rem', textAlign: 'right' }}>
                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
                       <a
-                        href={`http://localhost:3000/cards/${card.id}`}
+                        href={`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/cards/${card.id}`}
                         target="_blank"
                         rel="noreferrer"
                         title="Ver en Catálogo Público"

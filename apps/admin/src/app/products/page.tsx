@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+
 interface ProductItem {
   id: string;
   cardId: string;
@@ -43,8 +45,8 @@ export default function AdminProductsPage() {
     setLoading(true);
     try {
       const [resProd, resCards] = await Promise.all([
-        fetch('http://localhost:4000/api/products'),
-        fetch('http://localhost:4000/api/cards'),
+        fetch(`${API_BASE_URL}/api/products`),
+        fetch(`${API_BASE_URL}/api/cards`),
       ]);
 
       if (resProd.ok) {
@@ -107,7 +109,7 @@ export default function AdminProductsPage() {
     };
 
     try {
-      const res = await fetch('http://localhost:4000/api/products', {
+      const res = await fetch(`${API_BASE_URL}/api/products`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -150,7 +152,7 @@ export default function AdminProductsPage() {
     };
 
     try {
-      const res = await fetch(`http://localhost:4000/api/products/${editingProduct.id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/products/${editingProduct.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -174,7 +176,7 @@ export default function AdminProductsPage() {
     setIsSubmitting(true);
 
     try {
-      const res = await fetch(`http://localhost:4000/api/products/${deletingProduct.id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/products/${deletingProduct.id}`, {
         method: 'DELETE',
       });
       if (res.ok) {

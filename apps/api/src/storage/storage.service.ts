@@ -21,7 +21,7 @@ export class StorageService implements OnModuleInit {
 
     await fs.promises.writeFile(filePath, file.buffer);
     const relativePath = `/uploads/${filename}`;
-    const baseUrl = process.env.API_URL || 'http://localhost:4000';
+    const baseUrl = process.env.API_URL || process.env.WEB_URL || 'http://localhost:4000';
     const url = `${baseUrl}/uploads/${filename}`;
 
     this.logger.log(`Archivo guardado exitosamente: ${filename} (${file.size} bytes)`);

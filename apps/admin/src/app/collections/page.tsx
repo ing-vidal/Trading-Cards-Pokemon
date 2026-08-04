@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+
 interface CollectionItem {
   id: string;
   name: string;
@@ -55,7 +57,7 @@ export default function CollectionsAdminPage() {
   // Fetch collections from API
   const fetchCollections = async () => {
     try {
-      const res = await fetch('http://localhost:4000/api/collections');
+      const res = await fetch(`${API_BASE_URL}/api/collections`);
       if (res.ok) {
         const json = await res.json();
         if (Array.isArray(json) && json.length > 0) {
@@ -117,7 +119,7 @@ export default function CollectionsAdminPage() {
 
     let createdApi = false;
     try {
-      const res = await fetch('http://localhost:4000/api/collections', {
+      const res = await fetch(`${API_BASE_URL}/api/collections`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -180,7 +182,7 @@ export default function CollectionsAdminPage() {
 
     let updatedApi = false;
     try {
-      const res = await fetch(`http://localhost:4000/api/collections/${editingCol.id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/collections/${editingCol.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -223,7 +225,7 @@ export default function CollectionsAdminPage() {
 
     let deletedApi = false;
     try {
-      const res = await fetch(`http://localhost:4000/api/collections/${deletingCol.id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/collections/${deletingCol.id}`, {
         method: 'DELETE',
       });
       if (res.ok) {

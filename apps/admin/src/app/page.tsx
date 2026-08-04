@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+
 interface ActivityItem {
   title: string;
   desc: string;
@@ -35,10 +37,10 @@ export default function AdminDashboardPage() {
 
       try {
         const [resCards, resCollections, resPresets, resProducts] = await Promise.allSettled([
-          fetch('http://localhost:4000/api/cards'),
-          fetch('http://localhost:4000/api/collections'),
-          fetch('http://localhost:4000/api/visual-presets'),
-          fetch('http://localhost:4000/api/products'),
+          fetch(`${API_BASE_URL}/api/cards`),
+          fetch(`${API_BASE_URL}/api/collections`),
+          fetch(`${API_BASE_URL}/api/visual-presets`),
+          fetch(`${API_BASE_URL}/api/products`),
         ]);
 
         // Process Cards

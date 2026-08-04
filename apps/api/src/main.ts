@@ -40,9 +40,9 @@ async function bootstrap() {
   const uploadsDir = path.resolve(process.cwd(), 'storage', 'uploads');
   app.useStaticAssets(uploadsDir, { prefix: '/uploads/' });
 
-  const port = process.env.PORT || 4000;
-  await app.listen(port);
-  console.log(`🚀 TCG Vision API running on http://localhost:${port}/api`);
+  const port = Number(process.env.PORT || 4000);
+  await app.listen(port, '0.0.0.0');
+  console.log(`🚀 TCG Vision API running on http://0.0.0.0:${port}/api`);
 }
 
 bootstrap();

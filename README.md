@@ -96,6 +96,45 @@ tcg-vision/
 
 ---
 
+## 🌐 Despliegue Gratuito recomendado
+
+### Opción 1: Vercel + Render
+
+1. **Frontend web**
+   - Despliega la app de [apps/web](apps/web) en Vercel.
+   - Define la variable de entorno:
+     - `NEXT_PUBLIC_API_URL=https://<tu-api>.onrender.com`
+
+2. **Admin**
+   - Despliega [apps/admin](apps/admin) en Vercel.
+   - Define:
+     - `NEXT_PUBLIC_API_URL=https://<tu-api>.onrender.com`
+     - `NEXT_PUBLIC_APP_URL=https://<tu-web>.vercel.app`
+
+3. **API**
+   - Despliega [apps/api](apps/api) en Render.
+   - Define:
+     - `PORT=4000`
+     - `DATABASE_URL=...`
+     - `REDIS_URL=...`
+     - `JWT_SECRET=...`
+     - `API_URL=https://<tu-api>.onrender.com`
+     - `ALLOWED_ORIGINS=https://<tu-web>.vercel.app,https://<tu-admin>.vercel.app`
+
+4. **Base de datos y caché**
+   - Usa una base PostgreSQL gratuita en Neon o Supabase.
+   - Usa Redis gratuito en Upstash o Railway.
+
+### Opción 2: Railway
+
+- Web y admin: despliegue desde GitHub con Vercel o Railway.
+- API: Railway para un solo servicio Node/NestJS.
+- Variables de entorno similares a las anteriores.
+
+> Para un primer lanzamiento gratuito, Vercel + Render es la ruta más sencilla y estable.
+
+---
+
 ## 🗺️ Mapa de Sprints Completados
 
 - [x] **Sprint 0:** Arquitectura Monorepo & Entorno de Trabajo

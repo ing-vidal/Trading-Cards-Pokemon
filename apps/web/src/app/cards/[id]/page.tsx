@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+
 const Card3DCanvas = dynamic(
   () => import('@tcg/ui').then((mod) => mod.Card3DCanvas),
   { ssr: false }
@@ -40,7 +42,7 @@ export default function CardDetailPage({ params }: PageProps) {
 
       // 1. Try to fetch from NestJS API
       try {
-        const res = await fetch(`http://localhost:4000/api/cards/${cardId}`);
+        const res = await fetch(`${API_BASE_URL}/api/cards/${cardId}`);
         if (res.ok) {
           const data = await res.json();
           if (data && data.id) {
