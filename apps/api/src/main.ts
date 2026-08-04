@@ -14,7 +14,7 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api');
 
-  app.get(['/', '/health'], (req, res) => {
+  app.get(['/', '/health'], (req: any, res: any) => {
     res.json({
       message: 'TCG Vision API is running',
       status: 'ok',
@@ -22,7 +22,7 @@ async function bootstrap() {
     });
   });
 
-  app.get('/api', (req, res) => {
+  app.get('/api', (req: any, res: any) => {
     res.json({
       message: 'TCG Vision API is running',
       status: 'ok',
