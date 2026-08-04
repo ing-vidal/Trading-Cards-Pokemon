@@ -14,6 +14,7 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api');
 
+  const adapter = app.getHttpAdapter();
   const rootResponse = (_req: any, res: any) => {
     res.json({
       message: 'TCG Vision API is running',
@@ -22,9 +23,9 @@ async function bootstrap() {
     });
   };
 
-  app.get('/', rootResponse);
-  app.get('/health', rootResponse);
-  app.get('/api', rootResponse);
+  adapter.get('/', rootResponse);
+  adapter.get('/health', rootResponse);
+  adapter.get('/api', rootResponse);
 
   // Security Headers Middleware
   app.use((req: any, res: any, next: any) => {
