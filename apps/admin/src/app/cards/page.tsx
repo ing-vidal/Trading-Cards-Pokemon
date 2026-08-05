@@ -680,7 +680,7 @@ export default function CardsAdminPage() {
                   <td style={{ padding: '1rem 1.25rem', textAlign: 'right' }}>
                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
                       <a
-                        href={`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/cards/${card.id}`}
+                        href={`${process.env.NEXT_PUBLIC_APP_URL || 'https://trading-cards-pokemon-web.vercel.app'}/cards/${card.id}`}
                         target="_blank"
                         rel="noreferrer"
                         title="Ver en Catálogo Público"
