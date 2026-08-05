@@ -46,20 +46,53 @@ export default function CardsAdminPage() {
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const DEFAULT_COLLECTIONS = [
+    { id: '1', name: 'Base Set', code: 'BASE1' },
+    { id: '2', name: 'Scarlet & Violet Base', code: 'SV01' },
+    { id: '3', name: 'Crown Zenith', code: 'CRZ' },
+    { id: '4', name: 'Promotional Cards', code: 'PROMO' },
+  ];
+
+  const DEFAULT_RARITIES = [
+    { id: 'rarity-1', name: '1-Star Rare', color: '#3b82f6', shader: 'basic-foil' },
+    { id: 'rarity-2', name: '2-Star Secret Rare', color: '#8b5cf6', shader: 'basic-foil' },
+    { id: 'rarity-3', name: 'Gold Ultra Rare', color: '#eab308', shader: 'gold-relic' },
+    { id: 'rarity-4', name: 'Rainbow Hyper Rare', color: '#ec4899', shader: 'rainbow-hyper' },
+    { id: 'rarity-5', name: 'Secret Rare', color: '#a855f7', shader: 'glass-shatter' },
+    { id: 'rarity-6', name: 'Promotional', color: '#10b981', shader: 'promo-glow' },
+  ];
+
   // Fetch collections list for select dropdowns
   const fetchCollectionsList = async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/api/collections`);
       if (res.ok) {
         const json = await res.json();
-        if (Array.isArray(json)) {
+        if (Array.isArray(json) && json.length > 0) {
           const list = json.map((c: any) => ({ id: c.id, name: c.name, code: c.code }));
           setAvailableCollections(list);
+          return;
         }
       }
     } catch (e) {
       console.warn('API error fetching collections list for select:', e);
     }
+
+    try {
+      const saved = localStorage.getItem('tcg_custom_collections');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const list = parsed.map((c: any) => ({ id: c.id, name: c.name, code: c.code }));
+          setAvailableCollections(list);
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn('Could not load collections from localStorage:', e);
+    }
+
+    setAvailableCollections(DEFAULT_COLLECTIONS);
   };
 
   // Fetch rarities list for select dropdowns
@@ -68,7 +101,7 @@ export default function CardsAdminPage() {
       const res = await fetch(`${API_BASE_URL}/api/rarities`);
       if (res.ok) {
         const json = await res.json();
-        if (Array.isArray(json)) {
+        if (Array.isArray(json) && json.length > 0) {
           const list = json.map((r: any) => ({
             id: r.id,
             name: r.name,
@@ -76,11 +109,14 @@ export default function CardsAdminPage() {
             shader: r.preset?.shader || 'basic-foil',
           }));
           setAvailableRarities(list);
+          return;
         }
       }
     } catch (e) {
       console.warn('API error fetching rarities list for select:', e);
     }
+
+    setAvailableRarities(DEFAULT_RARITIES);
   };
 
   // Fetch cards from API
