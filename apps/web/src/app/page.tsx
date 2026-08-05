@@ -17,6 +17,42 @@ interface CardItem {
   imageUrl?: string;
 }
 
+const DEFAULT_DEMO_CARDS: CardItem[] = [
+  {
+    id: 'demo-charizard-004',
+    name: 'Charizard Holo',
+    number: '004/102',
+    collection: 'Base Set',
+    rarity: '1-Star Rare',
+    category: 'Pokémon',
+    price: 349.99,
+    color: '#eab308',
+    imageUrl: 'https://images.pokemontcg.io/base1/4_hires.png',
+  },
+  {
+    id: 'demo-pikachu-058',
+    name: 'Pikachu',
+    number: '058/102',
+    collection: 'Base Set',
+    rarity: '2-Star Secret Rare',
+    category: 'Pokémon',
+    price: 899.99,
+    color: '#8b5cf6',
+    imageUrl: 'https://images.pokemontcg.io/base1/58_hires.png',
+  },
+  {
+    id: 'demo-mewtwo-010',
+    name: 'Mewtwo Holo',
+    number: '010/102',
+    collection: 'Base Set',
+    rarity: 'Rainbow Hyper Rare',
+    category: 'Pokémon',
+    price: 120.0,
+    color: '#ec4899',
+    imageUrl: 'https://images.pokemontcg.io/base1/10_hires.png',
+  },
+];
+
 export default function PublicHomePage() {
   const [cards, setCards] = useState<CardItem[]>([]);
   const [collectionsList, setCollectionsList] = useState<{ id: string; name: string; code: string }[]>([]);
@@ -35,7 +71,7 @@ export default function PublicHomePage() {
         const resCol = await fetch(`${API_BASE_URL}/api/collections`);
         if (resCol.ok) {
           const jsonCol = await resCol.json();
-          if (Array.isArray(jsonCol)) {
+          if (Array.isArray(jsonCol) && jsonCol.length > 0) {
             setCollectionsList(jsonCol.map((c: any) => ({ id: c.id, name: c.name, code: c.code })));
           }
         }
@@ -67,7 +103,11 @@ export default function PublicHomePage() {
         console.warn('API connection offline:', e);
       }
 
-      setCards(apiCards);
+      if (apiCards.length > 0) {
+        setCards(apiCards);
+      } else {
+        setCards(DEFAULT_DEMO_CARDS);
+      }
       setLoading(false);
     }
 
