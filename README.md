@@ -123,15 +123,8 @@ tcg-vision/
      - `NEXT_PUBLIC_APP_URL=https://<tu-admin>.vercel.app`
 
 4. **Conexión DB y caché**
-   - Usa Supabase para la base de datos PostgreSQL.
-   - Si no tienes Redis en producción, deja `REDIS_URL` vacío o no la definas.
-
-> Para el lanzamiento online, esta combinación es la más sencilla: Render para API y Vercel para frontends.
-
----
-
-## 🗺️ Mapa de Sprints Completados
-
+   - Usa Supabase para PostgreSQL.
+   - Si no necesitas Redis en producción, deja `REDIS_URL` vacío o no la definas.
 - [x] **Sprint 0:** Arquitectura Monorepo & Entorno de Trabajo
 - [x] **Sprint 1:** Backend Infrastructure Setup (Prisma, Redis, NestJS Base)
 - [x] **Sprint 2:** Authentication & RBAC Engine
