@@ -1,0 +1,54 @@
+*** Begin Patch
+*** Update File: apps/api/src/cards/cards.service.ts
+@@
+-import { Prisma, AssetType, ProductCondition, ProductStatus } from '@prisma/client';
++import { Prisma, AssetType, ProductCondition, ProductStatus, RarityLevel } from '@prisma/client';
+@@
+-    // Resolve or fallback Collection, Rarity, Category
+-    let collectionId = dto.collectionId;
+-    if (!collectionId) {
+-      const col = await this.prisma.collection.findFirst();
+-      collectionId = col?.id || '';
+-    }
+-
+-    let rarityId = dto.rarityId;
+-    if (!rarityId) {
+-      const rar = await this.prisma.rarity.findFirst();
+-      rarityId = rar?.id || '';
+-    }
++    // Resolve or fallback Collection, Rarity, Category
++    let collectionId = dto.collectionId;
++    if (!collectionId) {
++      const col = await this.prisma.collection.findFirst();
++      if (col) {
++        collectionId = col.id;
++      } else {
++        const newCol = await this.prisma.collection.create({
++          data: {
++            name: 'Default Collection',
++            slug: 'default-collection',
++            code: 'DEFAULT',
++            description: 'Auto-created default collection',
++          },
++        });
++        collectionId = newCol.id;
++      }
++    }
++
++    let rarityId = dto.rarityId;
++    if (!rarityId) {
++      const rar = await this.prisma.rarity.findFirst();
++      if (rar) {
++        rarityId = rar.id;
++      } else {
++        const newRar = await this.prisma.rarity.create({
++          data: {
++            name: 'Common',
++            level: RarityLevel.STAR_1,
++            color: '#a855f7',
++          },
++        });
++        rarityId = newRar.id;
++      }
++    }
+*** End Patch
