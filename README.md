@@ -98,40 +98,35 @@ tcg-vision/
 
 ## 🌐 Despliegue Gratuito recomendado
 
-### Opción 1: Vercel + Render
+### Opción 1: Vercel + Render (recomendado)
 
-1. **Frontend web**
-   - Despliega la app de [apps/web](apps/web) en Vercel.
-   - Define la variable de entorno:
-     - `NEXT_PUBLIC_API_URL=https://<tu-api>.onrender.com`
+1. **API**
+   - Despliega [apps/api](apps/api) en Render.
+   - Define estas variables en Render:
+     - `DATABASE_URL=postgresql://postgres.mxrgynidlwddllhhzmuv:NWpr7TjIaZc1bBOW@aws-0-us-east-1.pooler.supabase.com:5432/postgres`
+     - `JWT_SECRET=tcg_vision_super_secret_jwt_key_2026`
+     - `REFRESH_TOKEN_SECRET=tcg_vision_refresh_secret_key_2026`
+     - `API_URL=https://trading-cards-pokemon.onrender.com`
+     - `ALLOWED_ORIGINS=https://<tu-web>.vercel.app,https://<tu-admin>.vercel.app`
+     - `REDIS_URL=`  (solo si tienes Redis configurado; si no, no la uses)
 
-2. **Admin**
-   - Despliega [apps/admin](apps/admin) en Vercel.
-   - Define:
-     - `NEXT_PUBLIC_API_URL=https://<tu-api>.onrender.com`
+2. **Frontend web**
+   - Despliega [apps/web](apps/web) en Vercel.
+   - En Vercel, define:
+     - `NEXT_PUBLIC_API_URL=https://trading-cards-pokemon.onrender.com`
      - `NEXT_PUBLIC_APP_URL=https://<tu-web>.vercel.app`
 
-3. **API**
-   - Despliega [apps/api](apps/api) en Render.
-   - Define:
-     - `PORT=4000`
-     - `DATABASE_URL=...`
-     - `REDIS_URL=...`
-     - `JWT_SECRET=...`
-     - `API_URL=https://<tu-api>.onrender.com`
-     - `ALLOWED_ORIGINS=https://<tu-web>.vercel.app,https://<tu-admin>.vercel.app`
+3. **Admin**
+   - Despliega [apps/admin](apps/admin) en Vercel.
+   - En Vercel, define:
+     - `NEXT_PUBLIC_API_URL=https://trading-cards-pokemon.onrender.com`
+     - `NEXT_PUBLIC_APP_URL=https://<tu-admin>.vercel.app`
 
-4. **Base de datos y caché**
-   - Usa una base PostgreSQL gratuita en Neon o Supabase.
-   - Usa Redis gratuito en Upstash o Railway.
+4. **Conexión DB y caché**
+   - Usa Supabase para la base de datos PostgreSQL.
+   - Si no tienes Redis en producción, deja `REDIS_URL` vacío o no la definas.
 
-### Opción 2: Railway
-
-- Web y admin: despliegue desde GitHub con Vercel o Railway.
-- API: Railway para un solo servicio Node/NestJS.
-- Variables de entorno similares a las anteriores.
-
-> Para un primer lanzamiento gratuito, Vercel + Render es la ruta más sencilla y estable.
+> Para el lanzamiento online, esta combinación es la más sencilla: Render para API y Vercel para frontends.
 
 ---
 

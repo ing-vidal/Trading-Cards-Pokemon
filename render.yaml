@@ -7,9 +7,8 @@ services:
     buildCommand: |
       corepack enable
       pnpm install --frozen-lockfile
-      pnpm prisma generate --schema=prisma/schema.prisma
       pnpm --filter @tcg/api build
-    startCommand: node main.js
+    startCommand: cd apps/api && node dist/main.js
     envVars:
       - key: NODE_ENV
         value: production
@@ -21,9 +20,9 @@ services:
         sync: false
       - key: JWT_SECRET
         sync: false
-      - key: JWT_REFRESH_SECRET
+      - key: REFRESH_TOKEN_SECRET
         sync: false
       - key: API_URL
-        value: https://tcgvision-api.onrender.com
+        value: https://trading-cards-pokemon.onrender.com
       - key: ALLOWED_ORIGINS
-        value: https://tcgvision-web.vercel.app,https://tcgvision-admin.vercel.app
+        value: https://<tu-web>.vercel.app,https://<tu-admin>.vercel.app
