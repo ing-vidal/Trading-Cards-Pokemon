@@ -112,6 +112,62 @@ export default function CardDetailPage({ params }: PageProps) {
         console.warn('Error reading from localStorage:', e);
       }
 
+      // 3. Fallback to demo cards when offline
+      const DEMO_MAP: Record<string, any> = {
+        'demo-charizard-004': {
+          id: 'demo-charizard-004',
+          name: 'Charizard Holo',
+          number: '004/102',
+          game: 'Pokemon TCG',
+          language: 'English',
+          collection: 'Base Set',
+          rarity: '1-Star Rare',
+          presetId: 'basic-foil',
+          description: 'Charizard lanza llamas tan intensas que pueden fundir casi cualquier cosa. Carta icónica holográfica de 1ª edición.',
+          imageUrl: 'https://images.pokemontcg.io/base1/4_hires.png',
+          prices: [
+            { condition: 'PSA 10 Gem Mint', price: '$2,499.99', stock: 1, status: 'AVAILABLE' },
+            { condition: 'Near Mint (RAW)', price: '$349.99', stock: 3, status: 'AVAILABLE' },
+          ],
+        },
+        'demo-pikachu-058': {
+          id: 'demo-pikachu-058',
+          name: 'Pikachu',
+          number: '058/102',
+          game: 'Pokemon TCG',
+          language: 'English',
+          collection: 'Base Set',
+          rarity: '2-Star Secret Rare',
+          presetId: 'rainbow-hyper',
+          description: 'Pikachu almacena electricidad en las bolsas de sus mejillas. Edición especial con acabado holo brillante.',
+          imageUrl: 'https://images.pokemontcg.io/base1/58_hires.png',
+          prices: [
+            { condition: 'Near Mint (RAW)', price: '$899.99', stock: 2, status: 'AVAILABLE' },
+          ],
+        },
+        'demo-mewtwo-010': {
+          id: 'demo-mewtwo-010',
+          name: 'Mewtwo Holo',
+          number: '010/102',
+          game: 'Pokemon TCG',
+          language: 'English',
+          collection: 'Base Set',
+          rarity: 'Rainbow Hyper Rare',
+          presetId: 'glass-shatter',
+          description: 'Creado mediante manipulación genética, Mewtwo posee capacidades psíquicas devastadoras.',
+          imageUrl: 'https://images.pokemontcg.io/base1/10_hires.png',
+          prices: [
+            { condition: 'Near Mint (RAW)', price: '$120.00', stock: 5, status: 'AVAILABLE' },
+          ],
+        },
+      };
+
+      if (DEMO_MAP[cardId]) {
+        setCard(DEMO_MAP[cardId]);
+        setLoading(false);
+        return;
+      }
+
       setLoading(false);
     }
 
