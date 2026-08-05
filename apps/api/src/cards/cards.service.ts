@@ -3,7 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateCardDto } from './dto/create-card.dto';
 import { UpdateCardDto } from './dto/update-card.dto';
 import { CardFilterDto } from './dto/card-filter.dto';
-import { Prisma, AssetType, ProductCondition, ProductStatus } from '@prisma/client';
+import { Prisma, AssetType, ProductCondition, ProductStatus, RarityLevel } from '@prisma/client';
 
 @Injectable()
 export class CardsService {
@@ -94,13 +94,36 @@ export class CardsService {
     let collectionId = dto.collectionId;
     if (!collectionId) {
       const col = await this.prisma.collection.findFirst();
-      collectionId = col?.id || '';
+      if (col) {
+        collectionId = col.id;
+      } else {
+        const newCol = await this.prisma.collection.create({
+          data: {
+            name: 'Default Collection',
+            slug: 'default-collection',
+            code: 'DEFAULT',
+            description: 'Auto-created default collection',
+          },
+        });
+        collectionId = newCol.id;
+      }
     }
 
     let rarityId = dto.rarityId;
     if (!rarityId) {
       const rar = await this.prisma.rarity.findFirst();
-      rarityId = rar?.id || '';
+      if (rar) {
+        rarityId = rar.id;
+      } else {
+        const newRar = await this.prisma.rarity.create({
+          data: {
+            name: 'Common',
+            level: RarityLevel.STAR_1,
+            color: '#a855f7',
+          },
+        });
+        rarityId = newRar.id;
+      }
     }
 
     const card = await this.prisma.card.create({
