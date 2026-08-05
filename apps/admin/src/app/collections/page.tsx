@@ -79,6 +79,18 @@ export default function CollectionsAdminPage() {
     } catch (e) {
       console.warn('API error when fetching collections, using local state:', e);
     }
+
+    try {
+      const saved = localStorage.getItem('tcg_custom_collections');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setCollections(parsed);
+        }
+      }
+    } catch (e) {
+      console.warn('Could not load collections from localStorage:', e);
+    }
   };
 
   useEffect(() => {
@@ -87,6 +99,11 @@ export default function CollectionsAdminPage() {
 
   const saveToLocalStorageFallback = (updated: CollectionItem[]) => {
     setCollections(updated);
+    try {
+      localStorage.setItem('tcg_custom_collections', JSON.stringify(updated));
+    } catch (e) {
+      console.warn('Could not save collections to localStorage:', e);
+    }
   };
 
   // Reset form
