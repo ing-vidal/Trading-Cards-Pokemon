@@ -107,7 +107,7 @@ tcg-vision/
      - `JWT_SECRET=tcg_vision_super_secret_jwt_key_2026`
      - `REFRESH_TOKEN_SECRET=tcg_vision_refresh_secret_key_2026`
      - `API_URL=https://trading-cards-pokemon.onrender.com`
-     - `ALLOWED_ORIGINS=https://<tu-web>.vercel.app,https://<tu-admin>.vercel.app`
+     - `ALLOWED_ORIGINS=https://trading-cards-pokemon-web.vercel.app,https://trading-cards-pokemon-admin.vercel.app`
      - `REDIS_URL=`  (solo si tienes Redis configurado; si no, no la uses)
 
 2. **Frontend web**
