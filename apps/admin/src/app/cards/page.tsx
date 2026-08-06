@@ -473,23 +473,47 @@ export default function CardsAdminPage() {
     // collect selected images (if any)
     const imageFiles: File[] = imagesInputRef.current?.files ? Array.from(imagesInputRef.current.files) : [];
 
-    // process rows sequentially
-    for (const r of rows) {
+    // process rows sequentially, normalize filenames and provide feedback
+    let processed = 0;
+    let failed = 0;
+    const errors: any[] = [];
+    for (const rOrig of rows) {
+      const r: any = {};
+      // normalize keys and trim strings
+      for (const k of Object.keys(rOrig)) {
+        const v = rOrig[k];
+        r[k] = typeof v === 'string' ? v.trim() : v;
+      }
+
       const payload: any = {
         name: r.name,
         number: r.number,
         collectionId: r.collectionId || undefined,
         rarityId: r.rarityId || undefined,
         energyTypeId: r.energyTypeId || undefined,
-        price: r.price !== undefined ? Number(r.price) : undefined,
-        stock: r.stock !== undefined ? Number(r.stock) : undefined,
+        price: r.price !== undefined && r.price !== '' ? Number(r.price) : undefined,
+        stock: r.stock !== undefined && r.stock !== '' ? Number(r.stock) : undefined,
         status: r.status || undefined,
         description: r.description || undefined,
       };
 
+      // normalize image filename: accept full Windows paths by extracting basename
+      let imageFilenameNormalized: string | undefined = undefined;
+      if (r.imageFilename) {
+        imageFilenameNormalized = String(r.imageFilename).trim();
+        // remove surrounding quotes if present
+        if (imageFilenameNormalized.startsWith('"') && imageFilenameNormalized.endsWith('"')) {
+          imageFilenameNormalized = imageFilenameNormalized.slice(1, -1);
+        }
+        // extract basename from full path (handles both / and \)
+        const parts = imageFilenameNormalized.split(/[\\/]+/);
+        const basename = parts[parts.length - 1] || imageFilenameNormalized;
+        imageFilenameNormalized = basename;
+      }
+
       // Upload image if provided and matched in selected folder
-      if (r.imageFilename && imageFiles.length > 0) {
-        const match = imageFiles.find((f) => f.name === r.imageFilename || f.webkitRelativePath === r.imageFilename || f.name === (r.imageFilename + ''));
+      if (imageFilenameNormalized && imageFiles.length > 0) {
+        const match = imageFiles.find((f) => f.name === imageFilenameNormalized || f.webkitRelativePath === imageFilenameNormalized || f.name === (imageFilenameNormalized + ''));
         if (match) {
           try {
             const form = new FormData();
@@ -501,23 +525,42 @@ export default function CardsAdminPage() {
             if (up.ok) {
               const asset = await up.json();
               payload.imageUrl = asset.url;
+            } else {
+              console.warn('Image upload returned non-ok', await up.text());
             }
           } catch (err) {
-            console.warn('Image upload failed for', match.name, err);
+            console.warn('Image upload failed for', imageFilenameNormalized, err);
+          }
+        } else {
+          // no local image match found; if the CSV provided a full http(s) url, use it
+          if (r.imageFilename && String(r.imageFilename).startsWith('http')) {
+            payload.imageUrl = r.imageFilename;
           }
         }
-      } else if (r.imageFilename && r.imageFilename.startsWith('http')) {
+      } else if (r.imageFilename && String(r.imageFilename).startsWith('http')) {
         payload.imageUrl = r.imageFilename;
       }
 
       try {
         // If id exists update, else create
+        let res: Response | null = null;
         if (r.id) {
-          await fetch(`${API_BASE_URL}/api/cards/${r.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+          res = await fetch(`${API_BASE_URL}/api/cards/${r.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         } else {
-          await fetch(`${API_BASE_URL}/api/cards`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+          res = await fetch(`${API_BASE_URL}/api/cards`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        }
+
+        if (!res || !res.ok) {
+          failed += 1;
+          const text = res ? await res.text() : 'no response';
+          errors.push({ row: r, status: res ? res.status : 'no-response', body: text });
+          console.warn('Failed to create/update card from row (non-ok)', r, res ? res.status : null, text);
+        } else {
+          processed += 1;
         }
       } catch (err) {
+        failed += 1;
+        errors.push({ row: r, error: String(err) });
         console.warn('Failed to create/update card from row', r, err);
       }
     }
@@ -526,6 +569,13 @@ export default function CardsAdminPage() {
     await fetchCardsFromApi();
     if (imagesInputRef.current) imagesInputRef.current.value = '';
     if (excelFileRef.current) excelFileRef.current.value = '';
+    // show user feedback
+    try {
+      alert(`Import complete: ${processed} succeeded, ${failed} failed.`);
+    } catch (err) {
+      console.log('Import complete', { processed, failed });
+    }
+    if (errors.length > 0) console.warn('Import errors:', errors);
   };
 
   // Filtered list
