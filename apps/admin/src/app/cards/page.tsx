@@ -1,6 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
+
+const Card3DCanvas = dynamic(
+  () => import('@tcg/ui').then((mod) => mod.Card3DCanvas),
+  { ssr: false }
+);
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://trading-cards-pokemon.onrender.com';
 
@@ -54,12 +60,14 @@ export default function CardsAdminPage() {
   ];
 
   const DEFAULT_RARITIES = [
-    { id: 'rarity-1', name: '1-Star Rare', color: '#3b82f6', shader: 'basic-foil' },
-    { id: 'rarity-2', name: '2-Star Secret Rare', color: '#8b5cf6', shader: 'basic-foil' },
-    { id: 'rarity-3', name: 'Gold Ultra Rare', color: '#eab308', shader: 'gold-relic' },
-    { id: 'rarity-4', name: 'Rainbow Hyper Rare', color: '#ec4899', shader: 'rainbow-hyper' },
-    { id: 'rarity-5', name: 'Secret Rare', color: '#a855f7', shader: 'glass-shatter' },
-    { id: 'rarity-6', name: 'Promotional', color: '#10b981', shader: 'promo-glow' },
+    { id: 'rarity-1', name: '1-Star Rare',             color: '#3b82f6', shader: 'basic-foil' },
+    { id: 'rarity-2', name: '2-Star Secret Rare',       color: '#8b5cf6', shader: 'rainbow-hyper' },
+    { id: 'rarity-3', name: 'Gold Ultra Rare',          color: '#eab308', shader: 'gold-relic' },
+    { id: 'rarity-4', name: 'Rainbow Hyper Rare',       color: '#ec4899', shader: 'rainbow-hyper' },
+    { id: 'rarity-5', name: 'Secret Rare Diamond',      color: '#a855f7', shader: 'glass-shatter' },
+    { id: 'rarity-6', name: 'Promotional',              color: '#10b981', shader: 'promo-glow' },
+    { id: 'rarity-7', name: 'Special Illustration Rare',color: '#818cf8', shader: 'special-art' },
+    { id: 'rarity-8', name: 'Trainer Gallery',          color: '#94a3b8', shader: 'trainer-gallery' },
   ];
 
   // Fetch collections list for select dropdowns
@@ -822,21 +830,12 @@ export default function CardsAdminPage() {
 
               <div style={{ flex: 1 }}>
                 <label style={labelStyle}>Rareza & Efecto Holo</label>
-                <select
-                  value={formData.rarityId}
-                  onChange={(e) => setFormData({ ...formData, rarityId: e.target.value })}
-                  style={inputStyle}
-                >
-                  {availableRarities.length === 0 ? (
-                    <option value="">Cargando rarezas...</option>
-                  ) : (
-                    availableRarities.map((rar) => (
-                      <option key={rar.id} value={rar.id}>
-                        {rar.name} — shader: {rar.shader}
-                      </option>
-                    ))
-                  )}
-                </select>
+                <RarityPickerWithPreview
+                  rarities={availableRarities}
+                  selectedId={formData.rarityId}
+                  previewImageUrl={previewImage || formData.imageUrl || undefined}
+                  onSelect={(id) => setFormData({ ...formData, rarityId: id })}
+                />
               </div>
             </div>
 
@@ -943,17 +942,12 @@ export default function CardsAdminPage() {
 
               <div style={{ flex: 1 }}>
                 <label style={labelStyle}>Rareza & Efecto Holo</label>
-                <select
-                  value={formData.rarityId}
-                  onChange={(e) => setFormData({ ...formData, rarityId: e.target.value })}
-                  style={inputStyle}
-                >
-                  {availableRarities.map((rar) => (
-                    <option key={rar.id} value={rar.id}>
-                      {rar.name} — shader: {rar.shader}
-                    </option>
-                  ))}
-                </select>
+                <RarityPickerWithPreview
+                  rarities={availableRarities}
+                  selectedId={formData.rarityId}
+                  previewImageUrl={previewImage || formData.imageUrl || undefined}
+                  onSelect={(id) => setFormData({ ...formData, rarityId: id })}
+                />
               </div>
             </div>
 
@@ -1128,6 +1122,114 @@ function ImageUploaderInput({ previewImage, onImageChange, onUrlChange }: { prev
   );
 }
 
+// ─── Rarity Picker with live 3D shader preview ──────────────────────────────
+interface RarityPickerProps {
+  rarities: { id: string; name: string; color: string; shader: string }[];
+  selectedId: string;
+  previewImageUrl?: string;
+  onSelect: (id: string) => void;
+}
+
+function RarityPickerWithPreview({ rarities, selectedId, previewImageUrl, onSelect }: RarityPickerProps) {
+  const selected = rarities.find((r) => r.id === selectedId) || rarities[0];
+  const shader = selected?.shader || 'basic-foil';
+
+  // Label icons per shader
+  const shaderIcon: Record<string, string> = {
+    'basic-foil':       '✨',
+    'rainbow-hyper':    '🌈',
+    'gold-relic':       '🥇',
+    'glass-shatter':    '💎',
+    'promo-glow':       '⚡',
+    'special-art':      '🌌',
+    'trainer-gallery':  '🎨',
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      {/* Rarity badge grid */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+        {rarities.map((rar) => {
+          const isSelected = rar.id === selectedId;
+          return (
+            <button
+              key={rar.id}
+              type="button"
+              onClick={() => onSelect(rar.id)}
+              style={{
+                padding: '0.35rem 0.7rem',
+                borderRadius: '8px',
+                border: isSelected ? `2px solid ${rar.color}` : '1px solid #3f3f46',
+                backgroundColor: isSelected ? `${rar.color}22` : '#09090b',
+                color: isSelected ? rar.color : '#a1a1aa',
+                fontSize: '0.78rem',
+                fontWeight: isSelected ? 700 : 500,
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.3rem',
+                boxShadow: isSelected ? `0 0 8px ${rar.color}55` : 'none',
+              }}
+            >
+              <span>{shaderIcon[rar.shader] || '✨'}</span>
+              {rar.name}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Live 3D shader preview */}
+      {selected && (
+        <div style={{
+          backgroundColor: '#09090b',
+          border: `1px solid ${selected.color}44`,
+          borderRadius: '12px',
+          overflow: 'hidden',
+          display: 'flex',
+          alignItems: 'stretch',
+          gap: 0,
+        }}>
+          {/* Mini 3D canvas preview */}
+          <div style={{ width: '140px', minHeight: '200px', flexShrink: 0 }}>
+            <Card3DCanvas
+              key={`preview-${shader}`}
+              presetId={shader}
+              imageUrl={previewImageUrl}
+              intensity={0.9}
+              width="140px"
+              height="200px"
+            />
+          </div>
+
+          {/* Effect info */}
+          <div style={{ flex: 1, padding: '0.9rem 1rem', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '0.4rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <span style={{ fontSize: '1.1rem' }}>{shaderIcon[shader] || '✨'}</span>
+              <span style={{ fontSize: '0.88rem', fontWeight: 700, color: selected.color }}>{selected.name}</span>
+            </div>
+            <div style={{ fontSize: '0.75rem', color: '#71717a', fontFamily: 'monospace' }}>
+              shader: <span style={{ color: '#c084fc' }}>{shader}</span>
+            </div>
+            <div style={{ fontSize: '0.75rem', color: '#a1a1aa', lineHeight: 1.4, marginTop: '0.2rem' }}>
+              {shader === 'gold-relic'      && '🥇 Iridiscencia rainbow + estrellas animadas + barrido metálico'}
+              {shader === 'rainbow-hyper'   && '🌈 Espectro cromático continuo con destellos de prisma'}
+              {shader === 'glass-shatter'   && '💎 Facetas de cristal con refracción prismática'}
+              {shader === 'promo-glow'      && '⚡ Aura neón pulsante con arcos de energía'}
+              {shader === 'special-art'     && '🌌 Nebulosa cósmica con campo de estrellas animado'}
+              {shader === 'trainer-gallery' && '🎨 Brillo plateado nacarado con shimmer artístico'}
+              {shader === 'basic-foil'      && '✨ Holo clásico con fresnel suave y shimmer lineal'}
+            </div>
+            <div style={{ fontSize: '0.7rem', color: '#52525b', marginTop: '0.3rem' }}>
+              💡 Mueve el mouse sobre la vista previa para ver el efecto 3D
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 const labelStyle: React.CSSProperties = {
   display: 'block',
   fontSize: '0.85rem',
@@ -1167,3 +1269,4 @@ const submitBtnStyle: React.CSSProperties = {
   fontWeight: 700,
   cursor: 'pointer'
 };
+

@@ -13,6 +13,59 @@ export interface Card3DCanvasProps {
   height?: string;
 }
 
+// Light config per preset for rarity-specific atmosphere
+const RARITY_LIGHTS: Record<string, { ambient: number; d1Color: number; d1Intensity: number; d2Color: number; d2Intensity: number }> = {
+  'gold-relic': {
+    ambient: 0.8,
+    d1Color: 0xffd060,  // warm gold
+    d1Intensity: 1.8,
+    d2Color: 0xffa040,  // amber fill
+    d2Intensity: 0.8,
+  },
+  'rainbow-hyper': {
+    ambient: 0.7,
+    d1Color: 0xffffff,
+    d1Intensity: 1.6,
+    d2Color: 0xff40ff,  // magenta fill
+    d2Intensity: 0.9,
+  },
+  'glass-shatter': {
+    ambient: 0.8,
+    d1Color: 0xd0eeff,  // cool white
+    d1Intensity: 1.6,
+    d2Color: 0x4080ff,  // blue fill
+    d2Intensity: 0.7,
+  },
+  'promo-glow': {
+    ambient: 0.6,
+    d1Color: 0x00ffff,  // cyan
+    d1Intensity: 1.5,
+    d2Color: 0xff00ff,  // magenta
+    d2Intensity: 0.8,
+  },
+  'special-art': {
+    ambient: 0.5,
+    d1Color: 0x8040ff,  // purple
+    d1Intensity: 1.4,
+    d2Color: 0x2020ff,  // deep blue
+    d2Intensity: 0.7,
+  },
+  'trainer-gallery': {
+    ambient: 0.9,
+    d1Color: 0xe0eeff,  // silver-white
+    d1Intensity: 1.5,
+    d2Color: 0xb0c8ff,  // blue-silver
+    d2Intensity: 0.6,
+  },
+  'basic-foil': {
+    ambient: 0.9,
+    d1Color: 0xffffff,
+    d1Intensity: 1.4,
+    d2Color: 0xa855f7,
+    d2Intensity: 0.6,
+  },
+};
+
 export function Card3DCanvas({
   presetId = 'basic-foil',
   intensity = 0.75,
@@ -26,7 +79,7 @@ export function Card3DCanvas({
   const materialRef = useRef<THREE.ShaderMaterial | null>(null);
   const cardMeshRef = useRef<THREE.Mesh | null>(null);
 
-  // Update texture when imageUrl changes
+  // Update texture when imageUrl changes without remounting
   useEffect(() => {
     if (materialRef.current && imageUrl) {
       const loader = new THREE.TextureLoader();
@@ -65,16 +118,18 @@ export function Card3DCanvas({
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     container.appendChild(renderer.domElement);
 
-    // 3. Lights
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
+    // 3. Rarity-specific lights
+    const lightCfg = RARITY_LIGHTS[presetId] || RARITY_LIGHTS['basic-foil'];
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, lightCfg.ambient);
     scene.add(ambientLight);
 
-    const dirLight1 = new THREE.DirectionalLight(0xffffff, 1.4);
-    dirLight1.position.set(5, 5, 5);
+    const dirLight1 = new THREE.DirectionalLight(lightCfg.d1Color, lightCfg.d1Intensity);
+    dirLight1.position.set(4, 5, 5);
     scene.add(dirLight1);
 
-    const dirLight2 = new THREE.DirectionalLight(0xa855f7, 0.6);
-    dirLight2.position.set(-5, -5, -2);
+    const dirLight2 = new THREE.DirectionalLight(lightCfg.d2Color, lightCfg.d2Intensity);
+    dirLight2.position.set(-4, -3, -2);
     scene.add(dirLight2);
 
     // 4. Card Geometry & Shader Material
@@ -96,9 +151,10 @@ export function Card3DCanvas({
       vertexShader: preset.vertexShader,
       fragmentShader: preset.fragmentShader,
       uniforms: {
-        uTime: { value: 0 },
+        uTime:      { value: 0 },
         uIntensity: { value: intensity },
-        tDiffuse: { value: initialTexture },
+        uMousePos:  { value: new THREE.Vector2(0, 0) },
+        tDiffuse:   { value: initialTexture },
       },
       side: THREE.DoubleSide,
     });
@@ -114,22 +170,30 @@ export function Card3DCanvas({
     controls.maxPolarAngle = Math.PI / 1.5;
     controls.minPolarAngle = Math.PI / 3;
 
-    // 6. Pointer Tilt Effect
+    // 6. Pointer Tilt + Mouse uniform
     let targetRotX = 0;
     let targetRotY = 0;
 
     const handleMouseMove = (e: MouseEvent) => {
       const rect = container.getBoundingClientRect();
-      const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-      const y = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
+      const x = ((e.clientX - rect.left) / rect.width)  * 2 - 1;
+      const y = -(((e.clientY - rect.top)  / rect.height) * 2 - 1);
 
       targetRotY = x * 0.5;
       targetRotX = -y * 0.5;
+
+      // Pass normalized mouse position to shader
+      if (materialRef.current) {
+        materialRef.current.uniforms.uMousePos.value.set(x, y);
+      }
     };
 
     const handleMouseLeave = () => {
       targetRotX = 0;
       targetRotY = 0;
+      if (materialRef.current) {
+        materialRef.current.uniforms.uMousePos.value.set(0, 0);
+      }
     };
 
     container.addEventListener('mousemove', handleMouseMove);
@@ -158,7 +222,7 @@ export function Card3DCanvas({
 
     animate();
 
-    // Resize Handler
+    // 8. Resize Handler
     const handleResize = () => {
       if (!container) return;
       const nw = container.clientWidth;
@@ -184,7 +248,7 @@ export function Card3DCanvas({
         container.removeChild(renderer.domElement);
       }
     };
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div

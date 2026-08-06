@@ -22,6 +22,9 @@ function mapRarityToPreset(rarityName?: string): string {
   if (r.includes('gold')) return 'gold-relic';
   if (r.includes('secret') || r.includes('diamond')) return 'glass-shatter';
   if (r.includes('promo')) return 'promo-glow';
+  if (r.includes('special') || r.includes('illustration')) return 'special-art';
+  if (r.includes('trainer') || r.includes('gallery')) return 'trainer-gallery';
+  if (r.includes('2-star') || r.includes('2 star')) return 'rainbow-hyper';
   return 'basic-foil';
 }
 
