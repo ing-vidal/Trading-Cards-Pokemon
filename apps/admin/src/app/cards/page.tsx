@@ -513,7 +513,6 @@ export default function CardsAdminPage() {
       raridad: 'rarityId',
       energytypeid: 'energyTypeId',
       energytype: 'energyTypeId',
-      energytypeid: 'energyTypeId',
       energiatype: 'energyTypeId',
       imagefilename: 'imageFilename',
       imagefile: 'imageFilename',
