@@ -5,9 +5,11 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const NAV_ITEMS = [
-  { label: 'Dashboard', href: '/', icon: '📊' },
-  { label: 'Cartas', href: '/cards', icon: '📇' },
-  { label: 'Colecciones', href: '/collections', icon: '📦' },
+  { label: 'Dashboard',         href: '/',              icon: '📊' },
+  { label: 'Cartas',            href: '/cards',         icon: '📇' },
+  { label: 'Colecciones',       href: '/collections',   icon: '📦' },
+  { label: 'Rarezas',           href: '/rarities',      icon: '⭐' },
+  { label: 'Tipos de Energía',  href: '/energy-types',  icon: '⚡' },
 ];
 
 export function Sidebar() {
