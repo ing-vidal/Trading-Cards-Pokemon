@@ -12,4 +12,9 @@
       "dest": "apps/web"
     }
   ]
+  ,"build": {
+    "env": {
+      "PNPM_CONFIG_FROZEN_LOCKFILE": "false"
+    }
+  }
 }
