@@ -612,7 +612,12 @@ export default function CardsAdminPage() {
 
           {/* Hidden inputs for selecting Excel and optional images folder */}
           <input ref={excelFileRef} type="file" accept=".xlsx,.xls" style={{ display: 'none' }} onChange={handleExcelFile} />
-          <input ref={imagesInputRef} type="file" webkitdirectory="true" directory="true" style={{ display: 'none' }} />
+          <input
+            ref={imagesInputRef}
+            type="file"
+            style={{ display: 'none' }}
+            {...({ webkitdirectory: true, directory: true } as any)}
+          />
         </div>
       </div>
 
