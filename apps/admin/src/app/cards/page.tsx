@@ -55,6 +55,9 @@ export default function CardsAdminPage() {
   });
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // Import/Export state
+  const excelFileRef = useRef<HTMLInputElement | null>(null);
+  const imagesInputRef = useRef<HTMLInputElement | null>(null);
 
   const DEFAULT_COLLECTIONS = [
     { id: '1', name: 'Base Set', code: 'BASE1' },
@@ -413,6 +416,110 @@ export default function CardsAdminPage() {
     setPreviewImage(null);
   };
 
+  // EXPORT to Excel
+  const handleExportExcel = async () => {
+    const XLSX = await import('xlsx');
+    const rows = cards.map((c) => ({
+      id: c.id,
+      name: c.name,
+      number: c.number,
+      collectionId: c.collectionId,
+      rarityId: c.rarityId,
+      energyTypeId: c.energyTypeId,
+      imageFilename: c.imageUrl ? c.imageUrl.split('/').pop() : '',
+      price: c.price,
+      stock: c.stock,
+      status: c.status,
+      description: c.description || '',
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'cards');
+    const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([wbout], { type: 'application/octet-stream' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'tcg_cards_export.xlsx';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  };
+
+  // IMPORT from Excel + optional images folder
+  const handleImportClick = () => {
+    excelFileRef.current?.click();
+  };
+
+  const handleExcelFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const XLSX = await import('xlsx');
+    const data = await file.arrayBuffer();
+    const workbook = XLSX.read(data, { type: 'array' });
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    const rows = XLSX.utils.sheet_to_json<any>(sheet);
+
+    // collect selected images (if any)
+    const imageFiles: File[] = imagesInputRef.current?.files ? Array.from(imagesInputRef.current.files) : [];
+
+    // process rows sequentially
+    for (const r of rows) {
+      const payload: any = {
+        name: r.name,
+        number: r.number,
+        collectionId: r.collectionId || undefined,
+        rarityId: r.rarityId || undefined,
+        energyTypeId: r.energyTypeId || undefined,
+        price: r.price !== undefined ? Number(r.price) : undefined,
+        stock: r.stock !== undefined ? Number(r.stock) : undefined,
+        status: r.status || undefined,
+        description: r.description || undefined,
+      };
+
+      // Upload image if provided and matched in selected folder
+      if (r.imageFilename && imageFiles.length > 0) {
+        const match = imageFiles.find((f) => f.name === r.imageFilename || f.webkitRelativePath === r.imageFilename || f.name === (r.imageFilename + ''));
+        if (match) {
+          try {
+            const form = new FormData();
+            form.append('file', match);
+            form.append('name', match.name);
+            form.append('type', 'IMAGE');
+            // @ts-ignore assume admin has auth cookie/session
+            const up = await fetch(`${API_BASE_URL}/api/assets/upload`, { method: 'POST', body: form });
+            if (up.ok) {
+              const asset = await up.json();
+              payload.imageUrl = asset.url;
+            }
+          } catch (err) {
+            console.warn('Image upload failed for', match.name, err);
+          }
+        }
+      } else if (r.imageFilename && r.imageFilename.startsWith('http')) {
+        payload.imageUrl = r.imageFilename;
+      }
+
+      try {
+        // If id exists update, else create
+        if (r.id) {
+          await fetch(`${API_BASE_URL}/api/cards/${r.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        } else {
+          await fetch(`${API_BASE_URL}/api/cards`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        }
+      } catch (err) {
+        console.warn('Failed to create/update card from row', r, err);
+      }
+    }
+
+    // Refresh list
+    await fetchCardsFromApi();
+    if (imagesInputRef.current) imagesInputRef.current.value = '';
+    if (excelFileRef.current) excelFileRef.current.value = '';
+  };
+
   // Filtered list
   const filteredCards = cards.filter((c) => {
     const matchesSearch =
@@ -442,32 +549,70 @@ export default function CardsAdminPage() {
             Control total de productos, actualización en tiempo real, gestión de inventario y activos multimedia.
           </p>
         </div>
-        <button
-          onClick={() => {
-            resetForm();
-            fetchCollectionsList();
-            fetchRaritiesList();
-            fetchEnergyTypesList();
-            setShowCreateModal(true);
-          }}
-          style={{
-            backgroundColor: '#a855f7',
-            color: '#ffffff',
-            border: 'none',
-            borderRadius: '10px',
-            padding: '0.75rem 1.35rem',
-            fontWeight: 700,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.6rem',
-            fontSize: '0.92rem',
-            boxShadow: '0 4px 14px rgba(168, 85, 247, 0.35)',
-            transition: 'transform 0.15s ease'
-          }}
-        >
-          <span>➕</span> Registrar Nueva Carta
-        </button>
+        <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center' }}>
+          <button
+            onClick={() => {
+              resetForm();
+              fetchCollectionsList();
+              fetchRaritiesList();
+              fetchEnergyTypesList();
+              setShowCreateModal(true);
+            }}
+            style={{
+              backgroundColor: '#a855f7',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '10px',
+              padding: '0.75rem 1.35rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.6rem',
+              fontSize: '0.92rem',
+              boxShadow: '0 4px 14px rgba(168, 85, 247, 0.35)',
+              transition: 'transform 0.15s ease'
+            }}
+          >
+            <span>➕</span> Registrar Nueva Carta
+          </button>
+
+          <button
+            onClick={handleExportExcel}
+            style={{
+              backgroundColor: '#0ea5e9',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '10px',
+              padding: '0.65rem 1rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              fontSize: '0.86rem'
+            }}
+          >
+            ⤓ Exportar Excel
+          </button>
+
+          <button
+            onClick={handleImportClick}
+            style={{
+              backgroundColor: '#10b981',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '10px',
+              padding: '0.65rem 1rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              fontSize: '0.86rem'
+            }}
+          >
+            ⤒ Importar Excel
+          </button>
+
+          {/* Hidden inputs for selecting Excel and optional images folder */}
+          <input ref={excelFileRef} type="file" accept=".xlsx,.xls" style={{ display: 'none' }} onChange={handleExcelFile} />
+          <input ref={imagesInputRef} type="file" webkitdirectory="true" directory="true" style={{ display: 'none' }} />
+        </div>
       </div>
 
       {/* KPI Metrics Summary Cards */}
