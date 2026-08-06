@@ -57,6 +57,7 @@ export default function CardsAdminPage() {
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   // Import/Export state
+  const [selectedImageFiles, setSelectedImageFiles] = useState<File[]>([]);
   const excelFileRef = useRef<HTMLInputElement | null>(null);
   const imagesInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -525,7 +526,25 @@ export default function CardsAdminPage() {
     };
 
     // collect selected images (if any)
-    const imageFiles: File[] = imagesInputRef.current?.files ? Array.from(imagesInputRef.current.files) : [];
+    const imageFiles: File[] = selectedImageFiles.length > 0 ? selectedImageFiles : imagesInputRef.current?.files ? Array.from(imagesInputRef.current.files) : [];
+    if (imageFiles.length > 0) {
+      console.info('Image folder files loaded for import:', imageFiles.length, imageFiles.map((f) => ({ name: f.name, path: (f as any).webkitRelativePath || f.name })));
+    }
+
+    const normalizeImageFilename = (filename: string) => {
+      let imageFilename = filename.trim();
+      if (imageFilename.startsWith('"') && imageFilename.endsWith('"')) {
+        imageFilename = imageFilename.slice(1, -1);
+      }
+      const parts = imageFilename.split(/[\\/]+/);
+      const basename = parts[parts.length - 1] || imageFilename;
+      return basename.trim();
+    };
+
+    const stripExtension = (filename: string) => {
+      const lastDot = filename.lastIndexOf('.');
+      return lastDot > 0 ? filename.slice(0, lastDot) : filename;
+    };
 
     // process rows sequentially, normalize filenames and provide feedback
     let processed = 0;
@@ -575,20 +594,24 @@ export default function CardsAdminPage() {
       // normalize image filename: accept full Windows paths by extracting basename
       let imageFilenameNormalized: string | undefined = undefined;
       if (r.imageFilename) {
-        imageFilenameNormalized = String(r.imageFilename).trim();
-        // remove surrounding quotes if present
-        if (imageFilenameNormalized.startsWith('"') && imageFilenameNormalized.endsWith('"')) {
-          imageFilenameNormalized = imageFilenameNormalized.slice(1, -1);
-        }
-        // extract basename from full path (handles both / and \)
-        const parts = imageFilenameNormalized.split(/[\\/]+/);
-        const basename = parts[parts.length - 1] || imageFilenameNormalized;
-        imageFilenameNormalized = basename;
+        imageFilenameNormalized = normalizeImageFilename(String(r.imageFilename));
       }
 
       // Upload image if provided and matched in selected folder
       if (imageFilenameNormalized && imageFiles.length > 0) {
-        const match = imageFiles.find((f) => f.name === imageFilenameNormalized || f.webkitRelativePath === imageFilenameNormalized || f.name === (imageFilenameNormalized + ''));
+        const normalizedImageFilename = imageFilenameNormalized.toLowerCase();
+        const normalizedImageFilenameNoExt = stripExtension(normalizedImageFilename);
+        const match = imageFiles.find((f) => {
+          const fileNameLower = f.name.toLowerCase();
+          const fileBaseNameNoExt = stripExtension(fileNameLower);
+          const relativePathLower = String((f as any).webkitRelativePath || '').toLowerCase();
+          return (
+            fileNameLower === normalizedImageFilename ||
+            relativePathLower.endsWith(normalizedImageFilename) ||
+            fileBaseNameNoExt === normalizedImageFilenameNoExt ||
+            relativePathLower.endsWith(normalizedImageFilenameNoExt)
+          );
+        });
         if (match) {
           try {
             const form = new FormData();
@@ -601,12 +624,16 @@ export default function CardsAdminPage() {
               const asset = await up.json();
               payload.imageUrl = asset.url;
             } else {
-              console.warn('Image upload returned non-ok', await up.text());
+              const text = await up.text();
+              console.warn('Image upload returned non-ok', text);
+              errors.push({ rowIndex: rowIndex + 1, row: r, error: `Image upload error: ${text}` });
             }
           } catch (err) {
             console.warn('Image upload failed for', imageFilenameNormalized, err);
+            errors.push({ rowIndex: rowIndex + 1, row: r, error: `Image upload exception: ${String(err)}` });
           }
         } else {
+          console.warn('No image file match found for', imageFilenameNormalized, imageFiles.map((f) => ({ name: f.name, path: (f as any).webkitRelativePath })));
           // no local image match found; if the CSV provided a full http(s) url, use it
           if (r.imageFilename && String(r.imageFilename).startsWith('http')) {
             payload.imageUrl = r.imageFilename;
@@ -643,6 +670,7 @@ export default function CardsAdminPage() {
     // Refresh list
     await fetchCardsFromApi();
     if (imagesInputRef.current) imagesInputRef.current.value = '';
+    setSelectedImageFiles([]);
     if (excelFileRef.current) excelFileRef.current.value = '';
 
     const summary = `Import complete: ${processed} succeeded, ${failed} failed.`;
@@ -768,8 +796,14 @@ export default function CardsAdminPage() {
           <input
             ref={imagesInputRef}
             type="file"
+            multiple
             style={{ display: 'none' }}
             {...({ webkitdirectory: true, directory: true } as any)}
+            onChange={(event) => {
+              const files = event.target.files ? Array.from(event.target.files) : [];
+              setSelectedImageFiles(files);
+              console.info('Selected image folder files', files.length, files.map((f) => ({ name: f.name, path: (f as any).webkitRelativePath || f.name })));
+            }}
           />
         </div>
       </div>
