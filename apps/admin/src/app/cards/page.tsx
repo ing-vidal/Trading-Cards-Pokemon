@@ -60,13 +60,20 @@ export default function CardsAdminPage() {
   const excelFileRef = useRef<HTMLInputElement | null>(null);
   const imagesInputRef = useRef<HTMLInputElement | null>(null);
 
+  const normalizeValue = (value: string | undefined) => {
+    if (!value) return undefined;
+    return value.toString().trim().toLowerCase().replace(/[-_\s]+/g, ' ').replace(/[^a-z0-9 ]/g, '');
+  };
+
   const resolveOptionId = (value: string | undefined, items: Array<{ id: string; name?: string; code?: string }> = []) => {
     if (!value) return undefined;
     const normalized = value.toString().trim().toLowerCase();
     if (!normalized) return undefined;
     const exact = items.find((item) => item.id === value || item.name?.toLowerCase() === normalized || item.code?.toLowerCase() === normalized);
     if (exact) return exact.id;
-    return items.find((item) => item.name?.toLowerCase() === normalized || item.code?.toLowerCase() === normalized)?.id;
+    const normalizedValue = normalizeValue(value);
+    if (!normalizedValue) return undefined;
+    return items.find((item) => normalizeValue(item.name) === normalizedValue || normalizeValue(item.code) === normalizedValue)?.id;
   };
 
   const resolveOptionIdFromRow = (row: any, keys: string[], items: Array<{ id: string; name?: string; code?: string }> = []) => {
@@ -486,7 +493,37 @@ export default function CardsAdminPage() {
     }
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
-    const rows = XLSX.utils.sheet_to_json<any>(sheet);
+    const sheetRows = XLSX.utils.sheet_to_json<any>(sheet);
+
+    const normalizeKey = (key: any) =>
+      key?.toString().trim().toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '');
+
+    const canonicalKeyMap: Record<string, string> = {
+      id: 'id',
+      name: 'name',
+      nombre: 'name',
+      number: 'number',
+      cardnumber: 'number',
+      numero: 'number',
+      collectionid: 'collectionId',
+      collection: 'collectionId',
+      coleccion: 'collectionId',
+      rarityid: 'rarityId',
+      rarity: 'rarityId',
+      raridad: 'rarityId',
+      energytypeid: 'energyTypeId',
+      energytype: 'energyTypeId',
+      energytypeid: 'energyTypeId',
+      energiatype: 'energyTypeId',
+      imagefilename: 'imageFilename',
+      imagefile: 'imageFilename',
+      image: 'imageFilename',
+      price: 'price',
+      stock: 'stock',
+      status: 'status',
+      description: 'description',
+      descripcion: 'description',
+    };
 
     // collect selected images (if any)
     const imageFiles: File[] = imagesInputRef.current?.files ? Array.from(imagesInputRef.current.files) : [];
@@ -495,12 +532,22 @@ export default function CardsAdminPage() {
     let processed = 0;
     let failed = 0;
     const errors: any[] = [];
-    for (const rOrig of rows) {
+    for (let rowIndex = 0; rowIndex < sheetRows.length; rowIndex += 1) {
+      const rOrig = sheetRows[rowIndex];
       const r: any = {};
-      // normalize keys and trim strings
+      // normalize keys, map aliases, and trim strings
       for (const k of Object.keys(rOrig)) {
         const v = rOrig[k];
-        r[k] = typeof v === 'string' ? v.trim() : v;
+        const normalizedKey = normalizeKey(k);
+        const mappedKey = canonicalKeyMap[normalizedKey] || normalizedKey;
+        r[mappedKey] = typeof v === 'string' ? v.trim() : v;
+      }
+
+      if (!r.name || !r.number) {
+        failed += 1;
+        errors.push({ rowIndex: rowIndex + 1, row: r, error: 'Missing required name or number field' });
+        console.warn('Skipping import row because name or number is missing', { rowIndex: rowIndex + 1, row: r });
+        continue;
       }
 
       const payload: any = {
@@ -582,8 +629,8 @@ export default function CardsAdminPage() {
         if (!res || !res.ok) {
           failed += 1;
           const text = res ? await res.text() : 'no response';
-          errors.push({ row: r, status: res ? res.status : 'no-response', body: text });
-          console.warn('Failed to create/update card from row (non-ok)', r, res ? res.status : null, text);
+          errors.push({ rowIndex: rowIndex + 1, row: r, status: res ? res.status : 'no-response', body: text });
+          console.warn('Failed to create/update card from row (non-ok)', { rowIndex: rowIndex + 1, row: r, status: res ? res.status : null, body: text });
         } else {
           processed += 1;
         }
@@ -598,13 +645,17 @@ export default function CardsAdminPage() {
     await fetchCardsFromApi();
     if (imagesInputRef.current) imagesInputRef.current.value = '';
     if (excelFileRef.current) excelFileRef.current.value = '';
-    // show user feedback
-    try {
-      alert(`Import complete: ${processed} succeeded, ${failed} failed.`);
-    } catch (err) {
-      console.log('Import complete', { processed, failed });
+
+    const summary = `Import complete: ${processed} succeeded, ${failed} failed.`;
+    if (errors.length > 0) {
+      const firstError = errors[0];
+      const errorDetail = firstError.error || firstError.body || JSON.stringify(firstError);
+      const rowInfo = firstError.rowIndex ? `row ${firstError.rowIndex}: ` : '';
+      alert(`${summary}\n${rowInfo}${errorDetail}`);
+      console.warn('Import errors:', errors);
+    } else {
+      alert(summary);
     }
-    if (errors.length > 0) console.warn('Import errors:', errors);
   };
 
   // Filtered list
