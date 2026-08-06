@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 
 const Card3DCanvas = dynamic(
@@ -128,7 +128,7 @@ export default function CardsAdminPage() {
               else if (level === 'STAR_2' || level === 'STAR_3') shader = 'rainbow-hyper';
               else if (!isPlaceholder) shader = dbShader;
             }
-            return { id: r.id, name: r.name, color: r.color || '#a855f7', shader };
+            return { id: r.id, name: r.name, color: r.color || '#a855f7', shader, icon: r.icon || null };
           });
           setAvailableRarities(list);
           return;
@@ -869,31 +869,25 @@ export default function CardsAdminPage() {
               </div>
 
               <div style={{ flex: 1 }}>
-                <label style={labelStyle}>Rareza & Efecto Holo</label>
-                <RarityPickerWithPreview
-                  rarities={availableRarities}
-                  selectedId={formData.rarityId}
-                  previewImageUrl={previewImage || formData.imageUrl || undefined}
-                  onSelect={(id) => setFormData({ ...formData, rarityId: id })}
+                <label style={labelStyle}>Rareza</label>
+                <AdminIconSelect
+                  value={formData.rarityId}
+                  options={availableRarities.map(r => ({ id: r.id, name: r.name, icon: (r as any).icon || null, color: r.color }))}
+                  onChange={(id) => setFormData({ ...formData, rarityId: id })}
+                  placeholder="— Sin rareza —"
                 />
               </div>
             </div>
 
-            {/* Tipo de Energía */}
+            {/* Tipo de Energía — Create Modal */}
             <div>
               <label style={labelStyle}>⚡ Tipo de Energía</label>
-              <select
+              <AdminIconSelect
                 value={formData.energyTypeId}
-                onChange={(e) => setFormData({ ...formData, energyTypeId: e.target.value })}
-                style={inputStyle}
-              >
-                <option value="">— Sin tipo de energía —</option>
-                {availableEnergyTypes.map((et) => (
-                  <option key={et.id} value={et.id}>
-                    {et.icon ? `${et.icon} ` : ''}{et.name}
-                  </option>
-                ))}
-              </select>
+                options={availableEnergyTypes.map(et => ({ id: et.id, name: et.name, icon: et.icon || null, color: et.color || null }))}
+                onChange={(id) => setFormData({ ...formData, energyTypeId: id })}
+                placeholder="— Sin tipo de energía —"
+              />
             </div>
 
             <div style={{ display: 'flex', gap: '1rem' }}>
@@ -998,12 +992,12 @@ export default function CardsAdminPage() {
               </div>
 
               <div style={{ flex: 1 }}>
-                <label style={labelStyle}>Rareza & Efecto Holo</label>
-                <RarityPickerWithPreview
-                  rarities={availableRarities}
-                  selectedId={formData.rarityId}
-                  previewImageUrl={previewImage || formData.imageUrl || undefined}
-                  onSelect={(id) => setFormData({ ...formData, rarityId: id })}
+                <label style={labelStyle}>Rareza</label>
+                <AdminIconSelect
+                  value={formData.rarityId}
+                  options={availableRarities.map(r => ({ id: r.id, name: r.name, icon: (r as any).icon || null, color: r.color }))}
+                  onChange={(id) => setFormData({ ...formData, rarityId: id })}
+                  placeholder="— Sin rareza —"
                 />
               </div>
             </div>
@@ -1011,18 +1005,12 @@ export default function CardsAdminPage() {
             {/* Tipo de Energía — Edit Modal */}
             <div>
               <label style={labelStyle}>⚡ Tipo de Energía</label>
-              <select
+              <AdminIconSelect
                 value={formData.energyTypeId}
-                onChange={(e) => setFormData({ ...formData, energyTypeId: e.target.value })}
-                style={inputStyle}
-              >
-                <option value="">— Sin tipo de energía —</option>
-                {availableEnergyTypes.map((et) => (
-                  <option key={et.id} value={et.id}>
-                    {et.icon ? `${et.icon} ` : ''}{et.name}
-                  </option>
-                ))}
-              </select>
+                options={availableEnergyTypes.map(et => ({ id: et.id, name: et.name, icon: et.icon || null, color: et.color || null }))}
+                onChange={(id) => setFormData({ ...formData, energyTypeId: id })}
+                placeholder="— Sin tipo de energía —"
+              />
             </div>
 
             <div style={{ display: 'flex', gap: '1rem' }}>
@@ -1196,7 +1184,100 @@ function ImageUploaderInput({ previewImage, onImageChange, onUrlChange }: { prev
   );
 }
 
-// ─── Rarity Picker with live 3D shader preview ──────────────────────────────
+// ─── AdminIconSelect: custom dropdown that renders image icons ───────────────
+function parseIconSrc(raw?: string | null): string[] {
+  if (!raw) return [];
+  try { const p = JSON.parse(raw); if (Array.isArray(p)) return p.filter(Boolean); } catch {}
+  return [raw];
+}
+
+function AdminIconImg({ src, size = 18 }: { src: string; size?: number }) {
+  const isImage = src.startsWith('data:image') || src.startsWith('http');
+  return isImage
+    ? <img src={src} alt="" style={{ width: size, height: size, objectFit: 'contain', display: 'inline-block', verticalAlign: 'middle', borderRadius: 2, flexShrink: 0 }} />
+    : <span style={{ fontSize: size * 0.85, lineHeight: 1, flexShrink: 0 }}>{src}</span>;
+}
+
+function IconRow({ icon, size = 18 }: { icon?: string | null; size?: number }) {
+  const srcs = parseIconSrc(icon);
+  if (!srcs.length) return null;
+  return <span style={{ display: 'inline-flex', alignItems: 'center', gap: '1px' }}>{srcs.map((s, i) => <AdminIconImg key={i} src={s} size={size} />)}</span>;
+}
+
+interface AdminIconSelectOption { id: string; name: string; icon?: string | null; color?: string | null; }
+
+function AdminIconSelect({
+  value, options, onChange, placeholder, style
+}: {
+  value: string;
+  options: AdminIconSelectOption[];
+  onChange: (id: string) => void;
+  placeholder?: string;
+  style?: React.CSSProperties;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const selected = value ? options.find(o => o.id === value) : null;
+  const baseStyle: React.CSSProperties = {
+    width: '100%', padding: '0.6rem 2rem 0.6rem 0.75rem', borderRadius: '8px',
+    border: '1px solid #3f3f46', backgroundColor: '#09090b', color: '#f4f4f5',
+    fontSize: '0.88rem', cursor: 'pointer', outline: 'none', textAlign: 'left',
+    display: 'flex', alignItems: 'center', gap: '0.5rem', position: 'relative',
+    boxSizing: 'border-box', ...style,
+  };
+
+  return (
+    <div ref={ref} style={{ position: 'relative', width: '100%' }}>
+      <button type="button" onClick={() => setOpen(o => !o)} style={baseStyle}>
+        {selected ? (
+          <><IconRow icon={selected.icon} size={18} /><span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selected.name}</span></>
+        ) : (
+          <span style={{ flex: 1, color: '#71717a' }}>{placeholder || '— Seleccionar —'}</span>
+        )}
+        <span style={{ position: 'absolute', right: '8px', color: '#a1a1aa', fontSize: '0.65rem', pointerEvents: 'none' }}>{open ? '▲' : '▼'}</span>
+      </button>
+
+      {open && (
+        <div style={{
+          position: 'absolute', top: 'calc(100% + 3px)', left: 0, right: 0, zIndex: 200,
+          backgroundColor: '#18181b', border: '1px solid #3f3f46', borderRadius: '8px',
+          maxHeight: '240px', overflowY: 'auto', boxShadow: '0 8px 24px rgba(0,0,0,0.6)',
+        }}>
+          {placeholder && (
+            <button type="button" onClick={() => { onChange(''); setOpen(false); }}
+              style={{ width: '100%', padding: '0.55rem 0.85rem', border: 'none', backgroundColor: !value ? '#27272a' : 'transparent', color: '#71717a', fontSize: '0.85rem', cursor: 'pointer', textAlign: 'left' }}>
+              {placeholder}
+            </button>
+          )}
+          {options.map(opt => (
+            <button key={opt.id} type="button"
+              onClick={() => { onChange(opt.id); setOpen(false); }}
+              style={{
+                width: '100%', padding: '0.55rem 0.85rem', border: 'none',
+                backgroundColor: value === opt.id ? '#27272a' : 'transparent',
+                color: '#f4f4f5', fontSize: '0.85rem', cursor: 'pointer', textAlign: 'left',
+                display: 'flex', alignItems: 'center', gap: '0.55rem',
+              }}>
+              <IconRow icon={opt.icon} size={20} />
+              <span style={{ flex: 1 }}>{opt.name}</span>
+              {opt.color && <span style={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: opt.color, flexShrink: 0 }} />}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 interface RarityPickerProps {
   rarities: { id: string; name: string; color: string; shader: string }[];
   selectedId: string;
