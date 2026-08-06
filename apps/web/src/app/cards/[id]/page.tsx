@@ -56,8 +56,22 @@ export default function CardDetailPage({ params }: PageProps) {
           const data = await res.json();
           if (data && data.id) {
             const rarityName = data.rarity?.name || '1-Star Rare';
-            // Use shader directly from DB → rarity.preset.shader, fallback to name-based mapping
+            const rarityLevel = data.rarity?.level || '';
+            // DB preset shader — only trust it if it's NOT the generic placeholder "basic-foil"
+            // so that named rarities (Gold, Rainbow, etc.) always get their dedicated shader.
             const shaderFromDb = data.rarity?.preset?.shader;
+            const isPlaceholder = !shaderFromDb || shaderFromDb === 'basic-foil';
+            // Also map by level for 100% accuracy
+            function mapLevelToPreset(level: string): string {
+              if (level === 'GOLD')    return 'gold-relic';
+              if (level === 'RAINBOW') return 'rainbow-hyper';
+              if (level === 'SECRET')  return 'glass-shatter';
+              if (level === 'PROMO')   return 'promo-glow';
+              return '';
+            }
+            const presetId = mapLevelToPreset(rarityLevel)
+              || (!isPlaceholder ? shaderFromDb : '')
+              || mapRarityToPreset(rarityName);
             setCard({
               id: data.id,
               name: data.name,
@@ -66,7 +80,7 @@ export default function CardDetailPage({ params }: PageProps) {
               language: data.language || 'English',
               collection: data.collection?.name || 'Base Set',
               rarity: rarityName,
-              presetId: shaderFromDb || mapRarityToPreset(rarityName),
+              presetId: presetId,
               collectionLogo: data.collection?.logo || data.collection?.image || data.collection?.imageUrl || data.collection?.cover || null,
               expansionImage: data.collection?.logo || data.collection?.image || data.collection?.imageUrl || data.collection?.cover || null,
               description: data.description || `Carta oficial de ${data.name} en el ecosistema TCG Vision.`,

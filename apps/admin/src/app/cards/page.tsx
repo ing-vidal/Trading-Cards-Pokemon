@@ -110,12 +110,23 @@ export default function CardsAdminPage() {
       if (res.ok) {
         const json = await res.json();
         if (Array.isArray(json) && json.length > 0) {
-          const list = json.map((r: any) => ({
-            id: r.id,
-            name: r.name,
-            color: r.color || '#a855f7',
-            shader: r.preset?.shader || 'basic-foil',
-          }));
+          const list = json.map((r: any) => {
+            const dbShader = r.preset?.shader;
+            const isPlaceholder = !dbShader || dbShader === 'basic-foil';
+            // Map by level first (most reliable), then by name, then DB shader
+            const level = r.level || '';
+            let shader = dbShader || 'basic-foil';
+            if (isPlaceholder || level) {
+              if (level === 'GOLD'    || r.name?.toLowerCase().includes('gold'))      shader = 'gold-relic';
+              else if (level === 'RAINBOW' || r.name?.toLowerCase().includes('rainbow')) shader = 'rainbow-hyper';
+              else if (level === 'SECRET'  || r.name?.toLowerCase().includes('secret'))  shader = 'glass-shatter';
+              else if (level === 'PROMO'   || r.name?.toLowerCase().includes('promo'))   shader = 'promo-glow';
+              else if (r.name?.toLowerCase().includes('special') || r.name?.toLowerCase().includes('illustration')) shader = 'special-art';
+              else if (r.name?.toLowerCase().includes('trainer') || r.name?.toLowerCase().includes('gallery'))      shader = 'trainer-gallery';
+              else if (!isPlaceholder) shader = dbShader;
+            }
+            return { id: r.id, name: r.name, color: r.color || '#a855f7', shader };
+          });
           setAvailableRarities(list);
           return;
         }
