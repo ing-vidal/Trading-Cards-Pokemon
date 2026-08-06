@@ -69,6 +69,15 @@ export default function CardsAdminPage() {
     return items.find((item) => item.name?.toLowerCase() === normalized || item.code?.toLowerCase() === normalized)?.id;
   };
 
+  const resolveOptionIdFromRow = (row: any, keys: string[], items: Array<{ id: string; name?: string; code?: string }> = []) => {
+    for (const key of keys) {
+      const value = row[key];
+      const id = resolveOptionId(value, items);
+      if (id) return id;
+    }
+    return undefined;
+  };
+
   const DEFAULT_COLLECTIONS = [
     { id: '1', name: 'Base Set', code: 'BASE1' },
     { id: '2', name: 'Scarlet & Violet Base', code: 'SV01' },
@@ -497,9 +506,9 @@ export default function CardsAdminPage() {
       const payload: any = {
         name: r.name,
         number: r.number,
-        collectionId: resolveOptionId(r.collectionId, availableCollections),
-        rarityId: resolveOptionId(r.rarityId, availableRarities),
-        energyTypeId: resolveOptionId(r.energyTypeId, availableEnergyTypes),
+        collectionId: resolveOptionIdFromRow(r, ['collectionId', 'collection'], availableCollections),
+        rarityId: resolveOptionIdFromRow(r, ['rarityId', 'rarity'], availableRarities),
+        energyTypeId: resolveOptionIdFromRow(r, ['energyTypeId', 'energyType'], availableEnergyTypes),
         price: r.price !== undefined && r.price !== '' ? Number(r.price) : undefined,
         stock: r.stock !== undefined && r.stock !== '' ? Number(r.stock) : undefined,
         status: r.status || undefined,
