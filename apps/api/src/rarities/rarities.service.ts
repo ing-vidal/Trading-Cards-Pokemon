@@ -3,20 +3,26 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateRarityDto } from './dto/create-rarity.dto';
 import { UpdateRarityDto } from './dto/update-rarity.dto';
 
+const LEVEL_ORDER: Record<string, number> = {
+  COMMON: 0, UNCOMMON: 1, RARE: 2, DOUBLE_RARE: 3,
+  STAR_1: 4, STAR_2: 5, STAR_3: 6,
+  IMMERSIVE: 7, DOUBLE_IMMERSIVE: 8, CROWN: 9, PROMO: 10,
+};
+
 @Injectable()
 export class RaritiesService {
   constructor(private readonly prisma: PrismaService) {}
 
   async findAll() {
-    return this.prisma.rarity.findMany({
+    const rarities = await this.prisma.rarity.findMany({
       include: {
         preset: true,
-        _count: {
-          select: { cards: true },
-        },
+        _count: { select: { cards: true } },
       },
-      orderBy: { name: 'asc' },
     });
+    return rarities.sort((a, b) =>
+      (LEVEL_ORDER[a.level] ?? 99) - (LEVEL_ORDER[b.level] ?? 99),
+    );
   }
 
   async findOne(id: string) {

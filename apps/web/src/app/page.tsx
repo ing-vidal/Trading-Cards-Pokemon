@@ -24,8 +24,14 @@ interface CardItem {
 }
 
 interface CollectionOption { id: string; name: string; code: string; }
-interface RarityOption    { id: string; name: string; color?: string; icon?: string; }
+interface RarityOption    { id: string; name: string; color?: string; icon?: string; level?: string; }
 interface EnergyOption    { id: string; name: string; icon?: string; color?: string; }
+
+const RARITY_LEVEL_ORDER: Record<string, number> = {
+  COMMON: 0, UNCOMMON: 1, RARE: 2, DOUBLE_RARE: 3,
+  STAR_1: 4, STAR_2: 5, STAR_3: 6,
+  IMMERSIVE: 7, DOUBLE_IMMERSIVE: 8, CROWN: 9, PROMO: 10,
+};
 
 // ─── Helper: renders icon(s) — supports JSON array for multi-image rarities ──
 function parseIcons(raw?: string | null): string[] {
@@ -271,8 +277,12 @@ export default function PublicHomePage() {
       try {
         if (resRar.status === 'fulfilled' && resRar.value.ok) {
           const json = await resRar.value.json();
-          if (Array.isArray(json))
-            setRaritiesList(json.map((r: any) => ({ id: r.id, name: r.name, color: r.color, icon: r.icon })));
+          if (Array.isArray(json)) {
+            const mapped = json.map((r: any) => ({ id: r.id, name: r.name, color: r.color, icon: r.icon, level: r.level }));
+            // Sort by defined level order (API already sorts, but guarantee it on frontend too)
+            mapped.sort((a, b) => (RARITY_LEVEL_ORDER[a.level] ?? 99) - (RARITY_LEVEL_ORDER[b.level] ?? 99));
+            setRaritiesList(mapped);
+          }
         }
       } catch (e) { console.warn('Rarities fetch error', e); }
 

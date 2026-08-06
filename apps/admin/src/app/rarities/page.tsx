@@ -24,6 +24,7 @@ const RARITY_LEVELS = [
   { value: 'IMMERSIVE',        label: '✦  Immersive Rare' },
   { value: 'DOUBLE_IMMERSIVE', label: '✦✦  Double Immersive' },
   { value: 'CROWN',            label: '👑  Crown Rare' },
+  { value: 'PROMO',            label: '🎁  Promo' },
 ];
 
 const inputStyle: React.CSSProperties = {

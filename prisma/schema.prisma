@@ -34,6 +34,7 @@ enum RarityLevel {
   IMMERSIVE     // ✦ (rainbow)
   DOUBLE_IMMERSIVE // ✦✦
   CROWN         // 👑
+  PROMO         // 🎁 Promotional
 }
 
 enum AssetType {
