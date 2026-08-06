@@ -194,6 +194,7 @@ export class CardsService {
     if (dto.status) dataToUpdate.status = dto.status;
     if (dto.collectionId) dataToUpdate.collectionId = dto.collectionId;
     if (dto.rarityId) dataToUpdate.rarityId = dto.rarityId;
+    if (dto.energyTypeId !== undefined) dataToUpdate.energyTypeId = dto.energyTypeId || null;
     if (dto.description) dataToUpdate.description = dto.description;
 
     const card = await this.prisma.card.update({

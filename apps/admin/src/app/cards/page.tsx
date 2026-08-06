@@ -18,6 +18,8 @@ interface CardItem {
   collectionId?: string;
   rarity: string;
   rarityId?: string;
+  energyType?: string;
+  energyTypeId?: string;
   status: 'PUBLISHED' | 'DRAFT' | 'ARCHIVED';
   hp?: number;
   imageUrl?: string;
@@ -29,6 +31,7 @@ export default function CardsAdminPage() {
   const [cards, setCards] = useState<CardItem[]>([]);
   const [availableCollections, setAvailableCollections] = useState<{ id: string; name: string; code: string }[]>([]);
   const [availableRarities, setAvailableRarities] = useState<{ id: string; name: string; color: string; shader: string }[]>([]);
+  const [availableEnergyTypes, setAvailableEnergyTypes] = useState<{ id: string; name: string; icon?: string; color?: string }[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [collectionFilter, setCollectionFilter] = useState('ALL');
@@ -44,6 +47,7 @@ export default function CardsAdminPage() {
     number: '',
     collectionId: '',
     rarityId: '',
+    energyTypeId: '',
     stock: 10,
     price: 49.99,
     status: 'PUBLISHED' as 'PUBLISHED' | 'DRAFT' | 'ARCHIVED',
@@ -153,6 +157,8 @@ export default function CardsAdminPage() {
             collectionId: c.collectionId || c.collection?.id,
             rarity: c.rarity?.name || '1-Star Rare',
             rarityId: c.rarityId || c.rarity?.id,
+            energyType: c.energyType?.name || null,
+            energyTypeId: c.energyTypeId || null,
             status: c.status || 'PUBLISHED',
             hp: c.hp || 100,
             price: c.products?.[0]?.price ? Number(c.products[0].price) : 49.99,
@@ -181,11 +187,29 @@ export default function CardsAdminPage() {
     }
   };
 
+  // Fetch energy types list
+  const fetchEnergyTypesList = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/energy-types`);
+      if (res.ok) {
+        const json = await res.json();
+        if (Array.isArray(json) && json.length > 0) {
+          setAvailableEnergyTypes(json.map((e: any) => ({ id: e.id, name: e.name, icon: e.icon, color: e.color })));
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn('API error fetching energy types:', e);
+    }
+  };
+
   useEffect(() => {
     fetchCardsFromApi();
     fetchCollectionsList();
     fetchRaritiesList();
+    fetchEnergyTypesList();
   }, []);
+
 
   const saveToLocalStorageFallback = (updated: CardItem[]) => {
     setCards(updated);
@@ -223,6 +247,7 @@ export default function CardsAdminPage() {
       status: formData.status,
       collectionId: formData.collectionId || (availableCollections[0]?.id ?? undefined),
       rarityId: formData.rarityId || (availableRarities[0]?.id ?? undefined),
+      energyTypeId: formData.energyTypeId || undefined,
       imageUrl: formData.imageUrl || previewImage || undefined,
     };
 
@@ -278,6 +303,7 @@ export default function CardsAdminPage() {
       number: card.number,
       collectionId: card.collectionId || (availableCollections.find((c) => c.name === card.collection)?.id || availableCollections[0]?.id || ''),
       rarityId: resolvedRarityId,
+      energyTypeId: card.energyTypeId || '',
       stock: card.stock ?? 10,
       price: card.price || 49.99,
       status: card.status,
@@ -299,6 +325,7 @@ export default function CardsAdminPage() {
       status: formData.status,
       collectionId: formData.collectionId || undefined,
       rarityId: formData.rarityId || undefined,
+      energyTypeId: formData.energyTypeId || undefined,
       imageUrl: formData.imageUrl || previewImage || undefined,
     };
 
@@ -378,6 +405,7 @@ export default function CardsAdminPage() {
       number: '',
       collectionId: availableCollections[0]?.id || '',
       rarityId: availableRarities[0]?.id || '',
+      energyTypeId: '',
       stock: 10,
       price: 49.99,
       status: 'PUBLISHED',
@@ -419,6 +447,8 @@ export default function CardsAdminPage() {
           onClick={() => {
             resetForm();
             fetchCollectionsList();
+            fetchRaritiesList();
+            fetchEnergyTypesList();
             setShowCreateModal(true);
           }}
           style={{
@@ -850,6 +880,23 @@ export default function CardsAdminPage() {
               </div>
             </div>
 
+            {/* Tipo de Energía */}
+            <div>
+              <label style={labelStyle}>⚡ Tipo de Energía</label>
+              <select
+                value={formData.energyTypeId}
+                onChange={(e) => setFormData({ ...formData, energyTypeId: e.target.value })}
+                style={inputStyle}
+              >
+                <option value="">— Sin tipo de energía —</option>
+                {availableEnergyTypes.map((et) => (
+                  <option key={et.id} value={et.id}>
+                    {et.icon ? `${et.icon} ` : ''}{et.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <div style={{ display: 'flex', gap: '1rem' }}>
               <div style={{ flex: 1 }}>
                 <label style={labelStyle}>Stock (Unidades Disponibles)</label>
@@ -960,6 +1007,23 @@ export default function CardsAdminPage() {
                   onSelect={(id) => setFormData({ ...formData, rarityId: id })}
                 />
               </div>
+            </div>
+
+            {/* Tipo de Energía — Edit Modal */}
+            <div>
+              <label style={labelStyle}>⚡ Tipo de Energía</label>
+              <select
+                value={formData.energyTypeId}
+                onChange={(e) => setFormData({ ...formData, energyTypeId: e.target.value })}
+                style={inputStyle}
+              >
+                <option value="">— Sin tipo de energía —</option>
+                {availableEnergyTypes.map((et) => (
+                  <option key={et.id} value={et.id}>
+                    {et.icon ? `${et.icon} ` : ''}{et.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div style={{ display: 'flex', gap: '1rem' }}>
