@@ -60,6 +60,15 @@ export default function CardsAdminPage() {
   const excelFileRef = useRef<HTMLInputElement | null>(null);
   const imagesInputRef = useRef<HTMLInputElement | null>(null);
 
+  const resolveOptionId = (value: string | undefined, items: Array<{ id: string; name?: string; code?: string }> = []) => {
+    if (!value) return undefined;
+    const normalized = value.toString().trim().toLowerCase();
+    if (!normalized) return undefined;
+    const exact = items.find((item) => item.id === value || item.name?.toLowerCase() === normalized || item.code?.toLowerCase() === normalized);
+    if (exact) return exact.id;
+    return items.find((item) => item.name?.toLowerCase() === normalized || item.code?.toLowerCase() === normalized)?.id;
+  };
+
   const DEFAULT_COLLECTIONS = [
     { id: '1', name: 'Base Set', code: 'BASE1' },
     { id: '2', name: 'Scarlet & Violet Base', code: 'SV01' },
@@ -488,14 +497,25 @@ export default function CardsAdminPage() {
       const payload: any = {
         name: r.name,
         number: r.number,
-        collectionId: r.collectionId || undefined,
-        rarityId: r.rarityId || undefined,
-        energyTypeId: r.energyTypeId || undefined,
+        collectionId: resolveOptionId(r.collectionId, availableCollections),
+        rarityId: resolveOptionId(r.rarityId, availableRarities),
+        energyTypeId: resolveOptionId(r.energyTypeId, availableEnergyTypes),
         price: r.price !== undefined && r.price !== '' ? Number(r.price) : undefined,
         stock: r.stock !== undefined && r.stock !== '' ? Number(r.stock) : undefined,
         status: r.status || undefined,
         description: r.description || undefined,
       };
+
+      if (!payload.collectionId && r.collectionId) {
+        console.warn('Could not resolve collection:', r.collectionId);
+      }
+      if (!payload.rarityId && r.rarityId) {
+        console.warn('Could not resolve rarity:', r.rarityId);
+      }
+      if (!payload.energyTypeId && r.energyTypeId) {
+        console.warn('Could not resolve energy type:', r.energyTypeId);
+      }
+
 
       // normalize image filename: accept full Windows paths by extracting basename
       let imageFilenameNormalized: string | undefined = undefined;
