@@ -667,6 +667,23 @@ export default function CardsAdminPage() {
             ⤒ Importar Excel/CSV
           </button>
 
+          <button
+            onClick={() => imagesInputRef.current?.click()}
+            title="Selecciona la carpeta que contiene imágenes referenciadas en el CSV"
+            style={{
+              backgroundColor: '#f59e0b',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '10px',
+              padding: '0.65rem 1rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              fontSize: '0.86rem'
+            }}
+          >
+            📁 Seleccionar carpeta de imágenes
+          </button>
+
           {/* Hidden inputs for selecting Excel and optional images folder */}
           <input ref={excelFileRef} type="file" accept=".xlsx,.xls,.csv" style={{ display: 'none' }} onChange={handleExcelFile} />
           <input
