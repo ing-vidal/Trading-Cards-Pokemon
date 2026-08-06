@@ -98,8 +98,8 @@ export default function PublicHomePage() {
 
   const [search, setSearch]                       = useState('');
   const [selectedCollection, setSelectedCollection] = useState('ALL');
-  const [selectedRarity, setSelectedRarity]       = useState('ALL');
-  const [selectedEnergyType, setSelectedEnergyType] = useState('ALL');
+  const [selectedRarityId, setSelectedRarityId]   = useState('ALL');
+  const [selectedEnergyTypeId, setSelectedEnergyTypeId] = useState('ALL');
 
   useEffect(() => {
     async function loadCatalogData() {
@@ -177,11 +177,11 @@ export default function PublicHomePage() {
   }, []);
 
   const filteredCards = cards.filter((c) => {
-    const matchesSearch     = c.name.toLowerCase().includes(search.toLowerCase()) ||
-                              c.number.toLowerCase().includes(search.toLowerCase());
-    const matchesCol        = selectedCollection === 'ALL' || c.collection === selectedCollection;
-    const matchesRarity     = selectedRarity === 'ALL' || c.rarity === selectedRarity;
-    const matchesEnergy     = selectedEnergyType === 'ALL' || c.energyType === selectedEnergyType;
+    const matchesSearch  = c.name.toLowerCase().includes(search.toLowerCase()) ||
+                           c.number.toLowerCase().includes(search.toLowerCase());
+    const matchesCol     = selectedCollection === 'ALL' || c.collection === selectedCollection;
+    const matchesRarity  = selectedRarityId === 'ALL' || c.rarityId === selectedRarityId;
+    const matchesEnergy  = selectedEnergyTypeId === 'ALL' || c.energyTypeId === selectedEnergyTypeId;
     return matchesSearch && matchesCol && matchesRarity && matchesEnergy;
   });
 
@@ -298,10 +298,10 @@ export default function PublicHomePage() {
               <label style={{ fontSize: '0.75rem', color: '#71717a', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 ⭐ Rareza
               </label>
-              <select value={selectedRarity} onChange={(e) => setSelectedRarity(e.target.value)} style={SELECT_STYLE}>
+              <select value={selectedRarityId} onChange={(e) => setSelectedRarityId(e.target.value)} style={SELECT_STYLE}>
                 <option value="ALL">Todas las Rarezas</option>
                 {raritiesList.map((r) => (
-                  <option key={r.id} value={r.name}>{r.icon ? `${r.icon} ` : ''}{r.name}</option>
+                  <option key={r.id} value={r.id}>{r.icon ? `${r.icon} ` : ''}{r.name}</option>
                 ))}
               </select>
             </div>
@@ -311,17 +311,17 @@ export default function PublicHomePage() {
               <label style={{ fontSize: '0.75rem', color: '#71717a', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 ⚡ Tipo de Energía
               </label>
-              <select value={selectedEnergyType} onChange={(e) => setSelectedEnergyType(e.target.value)} style={SELECT_STYLE}>
+              <select value={selectedEnergyTypeId} onChange={(e) => setSelectedEnergyTypeId(e.target.value)} style={SELECT_STYLE}>
                 <option value="ALL">Todos los Tipos</option>
                 {energyTypesList.map((e) => (
-                  <option key={e.id} value={e.name}>{e.icon ? `${e.icon} ` : ''}{e.name}</option>
+                  <option key={e.id} value={e.id}>{e.icon ? `${e.icon} ` : ''}{e.name}</option>
                 ))}
               </select>
             </div>
           </div>
 
           {/* Resumen de filtros activos */}
-          {(selectedCollection !== 'ALL' || selectedRarity !== 'ALL' || selectedEnergyType !== 'ALL' || search) && (
+          {(selectedCollection !== 'ALL' || selectedRarityId !== 'ALL' || selectedEnergyTypeId !== 'ALL' || search) && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
               <span style={{ fontSize: '0.8rem', color: '#71717a' }}>Filtros activos:</span>
               {search && (
@@ -334,18 +334,18 @@ export default function PublicHomePage() {
                   📦 {selectedCollection}
                 </span>
               )}
-              {selectedRarity !== 'ALL' && (
+              {selectedRarityId !== 'ALL' && (
                 <span style={{ fontSize: '0.75rem', padding: '0.2rem 0.6rem', borderRadius: '99px', backgroundColor: '#f59e0b20', color: '#fbbf24', border: '1px solid #f59e0b40' }}>
-                  ⭐ {selectedRarity}
+                  ⭐ {raritiesList.find(r => r.id === selectedRarityId)?.name || selectedRarityId}
                 </span>
               )}
-              {selectedEnergyType !== 'ALL' && (
+              {selectedEnergyTypeId !== 'ALL' && (
                 <span style={{ fontSize: '0.75rem', padding: '0.2rem 0.6rem', borderRadius: '99px', backgroundColor: '#10b98120', color: '#34d399', border: '1px solid #10b98140' }}>
-                  ⚡ {selectedEnergyType}
+                  ⚡ {energyTypesList.find(e => e.id === selectedEnergyTypeId)?.name || selectedEnergyTypeId}
                 </span>
               )}
               <button
-                onClick={() => { setSearch(''); setSelectedCollection('ALL'); setSelectedRarity('ALL'); setSelectedEnergyType('ALL'); }}
+                onClick={() => { setSearch(''); setSelectedCollection('ALL'); setSelectedRarityId('ALL'); setSelectedEnergyTypeId('ALL'); }}
                 style={{ fontSize: '0.75rem', padding: '0.2rem 0.6rem', borderRadius: '99px', backgroundColor: '#27272a', color: '#a1a1aa', border: '1px solid #3f3f46', cursor: 'pointer' }}
               >
                 ✕ Limpiar
@@ -375,7 +375,7 @@ export default function PublicHomePage() {
             <p style={{ color: '#a1a1aa', marginTop: '0.5rem' }}>
               Prueba cambiando los filtros o{' '}
               <button
-                onClick={() => { setSearch(''); setSelectedCollection('ALL'); setSelectedRarity('ALL'); setSelectedEnergyType('ALL'); }}
+                onClick={() => { setSearch(''); setSelectedCollection('ALL'); setSelectedRarityId('ALL'); setSelectedEnergyTypeId('ALL'); }}
                 style={{ background: 'none', border: 'none', color: '#38bdf8', cursor: 'pointer', textDecoration: 'underline', fontSize: 'inherit' }}
               >
                 limpia los filtros

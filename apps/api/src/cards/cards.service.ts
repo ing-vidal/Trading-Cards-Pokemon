@@ -142,6 +142,7 @@ export class CardsService {
         collectionId,
         rarityId,
         categoryId: dto.categoryId,
+        energyTypeId: dto.energyTypeId || undefined,
       },
       include: {
         collection: true,
