@@ -9,6 +9,7 @@ const Card3DCanvas = dynamic(
 );
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://trading-cards-pokemon.onrender.com';
+const PAGE_SIZE = 20;
 
 interface CardItem {
   id: string;
@@ -36,6 +37,7 @@ export default function CardsAdminPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [collectionFilter, setCollectionFilter] = useState('ALL');
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Modals state
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -696,6 +698,19 @@ export default function CardsAdminPage() {
     return matchesSearch && matchesStatus && matchesCol;
   });
 
+  const pageCount = Math.max(1, Math.ceil(filteredCards.length / PAGE_SIZE));
+  const paginatedCards = filteredCards.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+  useEffect(() => {
+    if (currentPage > pageCount) {
+      setCurrentPage(pageCount);
+    }
+  }, [currentPage, pageCount]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter, collectionFilter, cards.length]);
+
   // Calculate Metrics
   const totalCards = cards.length;
   const publishedCards = cards.filter((c) => c.status === 'PUBLISHED').length;
@@ -981,7 +996,7 @@ export default function CardsAdminPage() {
                 </td>
               </tr>
             ) : (
-              filteredCards.map((card) => (
+              paginatedCards.map((card) => (
                 <tr key={card.id} style={{ borderBottom: '1px solid #27272a', transition: 'background-color 0.15s ease' }}>
                   <td style={{ padding: '0.75rem 1.25rem' }}>
                     {card.imageUrl ? (
@@ -1133,6 +1148,46 @@ export default function CardsAdminPage() {
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Pagination Controls */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem', gap: '1rem', flexWrap: 'wrap' }}>
+        <div style={{ color: '#cbd5e1', fontSize: '0.9rem' }}>
+          Mostrando {paginatedCards.length} de {filteredCards.length} cartas
+          {filteredCards.length > PAGE_SIZE ? ` — página ${currentPage} de ${pageCount}` : ''}
+        </div>
+        {pageCount > 1 && (
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+              style={{
+                padding: '0.65rem 0.9rem',
+                borderRadius: '8px',
+                border: '1px solid #3f3f46',
+                backgroundColor: currentPage === 1 ? '#0f172a' : '#09090b',
+                color: currentPage === 1 ? '#6b7280' : '#f8fafc',
+                cursor: currentPage === 1 ? 'not-allowed' : 'pointer'
+              }}
+            >
+              ← Anterior
+            </button>
+            <button
+              onClick={() => setCurrentPage((prev) => Math.min(pageCount, prev + 1))}
+              disabled={currentPage === pageCount}
+              style={{
+                padding: '0.65rem 0.9rem',
+                borderRadius: '8px',
+                border: '1px solid #3f3f46',
+                backgroundColor: currentPage === pageCount ? '#0f172a' : '#09090b',
+                color: currentPage === pageCount ? '#6b7280' : '#f8fafc',
+                cursor: currentPage === pageCount ? 'not-allowed' : 'pointer'
+              }}
+            >
+              Siguiente →
+            </button>
+          </div>
+        )}
       </div>
 
       {/* CREATE MODAL */}
