@@ -18,9 +18,6 @@ export default function AdminDashboardPage() {
   const [cardsCount, setCardsCount] = useState<number>(0);
   const [collectionsCount, setCollectionsCount] = useState<number>(0);
   const [collectionsNames, setCollectionsNames] = useState<string>('Sin colecciones');
-  const [presetsCount, setPresetsCount] = useState<number>(0);
-  const [totalStock, setTotalStock] = useState<number>(0);
-  const [productsCount, setProductsCount] = useState<number>(0);
   const [recentActivities, setRecentActivities] = useState<ActivityItem[]>([]);
 
   useEffect(() => {
@@ -29,18 +26,13 @@ export default function AdminDashboardPage() {
 
       let fetchedCardsCount = 0;
       let fetchedCollectionsCount = 0;
-      let fetchedPresetsCount = 0;
-      let fetchedTotalStock = 0;
-      let fetchedProductsCount = 0;
       let colNamesStr = 'Sin colecciones';
       const activities: ActivityItem[] = [];
 
       try {
-        const [resCards, resCollections, resPresets, resProducts] = await Promise.allSettled([
+        const [resCards, resCollections] = await Promise.allSettled([
           fetch(`${API_BASE_URL}/api/cards`),
           fetch(`${API_BASE_URL}/api/collections`),
-          fetch(`${API_BASE_URL}/api/visual-presets`),
-          fetch(`${API_BASE_URL}/api/products`),
         ]);
 
         // Process Cards
@@ -78,36 +70,6 @@ export default function AdminDashboardPage() {
             });
           }
         }
-
-        // Process Visual Presets
-        if (resPresets.status === 'fulfilled' && resPresets.value.ok) {
-          const jsonPresets = await resPresets.value.json();
-          if (Array.isArray(jsonPresets)) {
-            fetchedPresetsCount = jsonPresets.length > 0 ? jsonPresets.length : 5; // fallback to built-in GLSL shaders count
-          } else {
-            fetchedPresetsCount = 5;
-          }
-        } else {
-          fetchedPresetsCount = 5; // standard 5 GLSL shader presets
-        }
-
-        // Process Products
-        if (resProducts.status === 'fulfilled' && resProducts.value.ok) {
-          const jsonProd = await resProducts.value.json();
-          if (Array.isArray(jsonProd)) {
-            fetchedProductsCount = jsonProd.length;
-            fetchedTotalStock = jsonProd.reduce((acc: number, p: any) => acc + (p.stock || 0), 0);
-
-            jsonProd.slice(0, 1).forEach((p: any) => {
-              activities.push({
-                title: 'Inventario / Stock',
-                desc: `${p.card?.name || 'Listing'} (${p.condition}) - ${p.stock} un.`,
-                time: p.updatedAt ? new Date(p.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Reciente',
-                badge: 'STOCK',
-              });
-            });
-          }
-        }
       } catch (err) {
         console.warn('Dashboard fetch error:', err);
       }
@@ -115,9 +77,6 @@ export default function AdminDashboardPage() {
       setCardsCount(fetchedCardsCount);
       setCollectionsCount(fetchedCollectionsCount);
       setCollectionsNames(colNamesStr);
-      setPresetsCount(fetchedPresetsCount);
-      setTotalStock(fetchedTotalStock);
-      setProductsCount(fetchedProductsCount);
 
       if (activities.length > 0) {
         setRecentActivities(activities);
@@ -147,20 +106,6 @@ export default function AdminDashboardPage() {
       change: collectionsNames,
       icon: '📦',
       color: '#a855f7'
-    },
-    {
-      label: 'Presets Studio 3D',
-      value: loading ? '...' : presetsCount.toString(),
-      change: 'GLSL Holográficos',
-      icon: '🎨',
-      color: '#f59e0b'
-    },
-    {
-      label: 'Productos en Stock',
-      value: loading ? '...' : totalStock.toLocaleString(),
-      change: `${productsCount} variantes de producto`,
-      icon: '🛒',
-      color: '#10b981'
     },
   ];
 
@@ -286,21 +231,6 @@ export default function AdminDashboardPage() {
             <span>📦</span> Nueva Colección / Expansión
           </Link>
 
-          <Link href="/studio" style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.75rem',
-            padding: '0.85rem 1rem',
-            borderRadius: '8px',
-            backgroundColor: '#f59e0b15',
-            border: '1px solid #f59e0b40',
-            color: '#fbbf24',
-            textDecoration: 'none',
-            fontWeight: 600,
-            fontSize: '0.9rem'
-          }}>
-            <span>🎨</span> Editar Shaders en Studio CMS
-          </Link>
         </div>
       </div>
     </div>

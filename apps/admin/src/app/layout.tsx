@@ -3,8 +3,8 @@ import { Sidebar } from '../components/Sidebar';
 import { Header } from '../components/Header';
 
 export const metadata = {
-  title: 'TCG Vision — Admin Panel & Studio CMS',
-  description: 'Panel de administración y editor Studio de rarezas 3D para Pokémon TCG.'
+  title: 'TCG Vision — Admin Panel',
+  description: 'Panel de administración de cartas y colecciones Pokémon TCG.'
 };
 
 export default function AdminLayout({

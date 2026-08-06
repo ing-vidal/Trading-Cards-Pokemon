@@ -8,8 +8,6 @@ const NAV_ITEMS = [
   { label: 'Dashboard', href: '/', icon: '📊' },
   { label: 'Cartas', href: '/cards', icon: '📇' },
   { label: 'Colecciones', href: '/collections', icon: '📦' },
-  { label: 'Studio CMS (Shaders)', href: '/studio', icon: '🎨' },
-  { label: 'Inventario & Productos', href: '/products', icon: '🛒' },
 ];
 
 export function Sidebar() {
@@ -50,7 +48,7 @@ export function Sidebar() {
         </div>
         <div>
           <h2 style={{ margin: 0, fontSize: '1.1rem', color: '#f4f4f5', fontWeight: 600 }}>TCG Vision</h2>
-          <span style={{ fontSize: '0.75rem', color: '#a1a1aa' }}>Admin & Studio CMS</span>
+          <span style={{ fontSize: '0.75rem', color: '#a1a1aa' }}>Panel de Administración</span>
         </div>
       </div>
 
