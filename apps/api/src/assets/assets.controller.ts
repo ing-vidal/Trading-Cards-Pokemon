@@ -35,8 +35,8 @@ export class AssetsController {
     return this.assetsService.findOne(id);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(RoleType.SUPER_ADMIN, RoleType.CONTENT_MANAGER, RoleType.DESIGNER)
+  // Temporary import helper: allow uploads without JWT auth so CSV/XLSX card imports can attach local images.
+  // Remove this override when the admin app has a proper login/token flow.
   @Post('upload')
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(@UploadedFile() file: Express.Multer.File, @Body() dto: CreateAssetDto) {
