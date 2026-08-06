@@ -11,6 +11,12 @@ const Card3DCanvas = dynamic(
   { ssr: false }
 );
 
+const GoldCard3DCanvas = dynamic(
+  () => import('@tcg/ui').then((mod) => mod.GoldCard3DCanvas),
+  { ssr: false }
+);
+
+
 interface PageProps {
   params: Promise<{ id: string }>;
 }
@@ -219,35 +225,61 @@ export default function CardDetailPage({ params }: PageProps) {
 
         {/* Main Grid: Unified 3D Holo Card Left, Technical Stats Right */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3rem', alignItems: 'start' }}>
-          {/* Unified 3D Holo Canvas Panel */}
+          {/* 3D Card Canvas Panel */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div style={{
               height: '520px',
-              backgroundColor: '#18181b',
-              border: '1px solid #27272a',
+              backgroundColor: shaderPresetId === 'gold-relic' ? '#0a0800' : '#18181b',
+              border: shaderPresetId === 'gold-relic'
+                ? '1px solid #ffd06055'
+                : '1px solid #27272a',
               borderRadius: '16px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               overflow: 'hidden',
               position: 'relative',
-              boxShadow: '0 20px 40px rgba(0,0,0,0.6)'
+              boxShadow: shaderPresetId === 'gold-relic'
+                ? '0 20px 60px rgba(255,208,96,0.2), 0 0 120px rgba(255,160,0,0.08)'
+                : '0 20px 40px rgba(0,0,0,0.6)',
             }}>
-              {/* key forces full remount of Three.js canvas when shader preset changes */}
-              <Card3DCanvas
-                key={shaderPresetId}
-                imageUrl={card.imageUrl}
-                presetId={shaderPresetId}
-                intensity={0.85}
-                height="520px"
-              />
+              {shaderPresetId === 'gold-relic' ? (
+                /* Premium 9-layer Gold renderer with PBR + editor */
+                <GoldCard3DCanvas
+                  key="gold-premium"
+                  imageUrl={card.imageUrl}
+                  intensity={0.9}
+                  width="100%"
+                  height="520px"
+                  showEditor={false}
+                />
+              ) : (
+                /* Standard shader renderer for all other rarities */
+                <Card3DCanvas
+                  key={shaderPresetId}
+                  imageUrl={card.imageUrl}
+                  presetId={shaderPresetId}
+                  intensity={0.85}
+                  height="520px"
+                />
+              )}
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem', color: '#71717a', padding: '0 0.5rem' }}>
-              <span>💡 Haz clic y arrastra para mover/rotar la carta en 3D</span>
-              <span style={{ color: '#c084fc', fontWeight: 600 }}>Efecto Shader: {shaderPresetId}</span>
+              <span>
+                {shaderPresetId === 'gold-relic'
+                  ? '🥇 Mueve el mouse · Rota · Abre ⚙️ para ajustar parámetros del shader'
+                  : '💡 Haz clic y arrastra para mover/rotar la carta en 3D'}
+              </span>
+              <span style={{
+                color: shaderPresetId === 'gold-relic' ? '#ffd060' : '#c084fc',
+                fontWeight: 600
+              }}>
+                {shaderPresetId === 'gold-relic' ? '🥇 Gold PBR Premium' : `Shader: ${shaderPresetId}`}
+              </span>
             </div>
           </div>
+
 
           {/* Technical Info Panel */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>

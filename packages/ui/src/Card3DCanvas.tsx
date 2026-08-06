@@ -4,6 +4,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { getPresetById } from '@tcg/shaders';
+import { GoldCard3DCanvas } from './GoldCard3DCanvas';
+
 
 export interface Card3DCanvasProps {
   presetId?: string;
@@ -73,6 +75,20 @@ export function Card3DCanvas({
   width = '100%',
   height = '520px',
 }: Card3DCanvasProps) {
+  // ── Premium Gold Renderer ──────────────────────────────────────────────────
+  // Delegate to the full 9-layer PBR pipeline for gold-relic preset only.
+  if (presetId === 'gold-relic') {
+    return (
+      <GoldCard3DCanvas
+        imageUrl={imageUrl}
+        intensity={intensity}
+        width={width}
+        height={height}
+        showEditor={false}
+      />
+    );
+  }
+
   const containerRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
 

@@ -2,6 +2,7 @@ export const UI_VERSION = '1.0.0';
 
 export * from './Card3DMesh';
 export * from './Card3DCanvas';
+export * from './GoldCard3DCanvas';
 
 export interface ButtonProps {
   label: string;
