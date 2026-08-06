@@ -550,8 +550,8 @@ export default function CardsAdminPage() {
       }
 
       const payload: any = {
-        name: r.name,
-        number: r.number,
+        name: String(r.name),
+        number: String(r.number),
         collectionId: resolveOptionIdFromRow(r, ['collectionId', 'collection'], availableCollections),
         rarityId: resolveOptionIdFromRow(r, ['rarityId', 'rarity'], availableRarities),
         energyTypeId: resolveOptionIdFromRow(r, ['energyTypeId', 'energyType'], availableEnergyTypes),
