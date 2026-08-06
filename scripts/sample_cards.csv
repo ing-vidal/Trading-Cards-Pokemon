@@ -1,0 +1,2 @@
+id,name,number,collectionId,rarityId,energyTypeId,imageFilename,price,stock,status,description
+,Import Test,IMP-001,, , , ,19.99,5,PUBLISHED,Sample card imported from CSV
