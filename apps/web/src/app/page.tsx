@@ -27,13 +27,29 @@ interface CollectionOption { id: string; name: string; code: string; }
 interface RarityOption    { id: string; name: string; color?: string; icon?: string; }
 interface EnergyOption    { id: string; name: string; icon?: string; color?: string; }
 
-// ─── Helper: renders icon correctly whether image URL/base64 or emoji ────────
+// ─── Helper: renders icon(s) — supports JSON array for multi-image rarities ──
+function parseIcons(raw?: string | null): string[] {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return parsed.filter(Boolean);
+  } catch {}
+  return [raw];
+}
+
 function IconDisplay({ icon, size = 18 }: { icon?: string | null; size?: number }) {
-  if (!icon) return null;
-  const isImage = icon.startsWith('data:image') || icon.startsWith('http');
-  return isImage
-    ? <img src={icon} alt="" style={{ width: size, height: size, objectFit: 'contain', display: 'inline-block', verticalAlign: 'middle', borderRadius: 2 }} />
-    : <span style={{ fontSize: size * 0.85, lineHeight: 1, display: 'inline-block', verticalAlign: 'middle' }}>{icon}</span>;
+  const icons = parseIcons(icon);
+  if (icons.length === 0) return null;
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '1px' }}>
+      {icons.map((src, i) => {
+        const isImage = src.startsWith('data:image') || src.startsWith('http');
+        return isImage
+          ? <img key={i} src={src} alt="" style={{ width: size, height: size, objectFit: 'contain', display: 'inline-block', verticalAlign: 'middle', borderRadius: 2 }} />
+          : <span key={i} style={{ fontSize: size * 0.85, lineHeight: 1, display: 'inline-block', verticalAlign: 'middle' }}>{src}</span>;
+      })}
+    </span>
+  );
 }
 
 // ─── Custom dropdown that supports image icons ───────────────────────────────
