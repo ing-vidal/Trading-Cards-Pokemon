@@ -11,11 +11,21 @@ interface CardItem {
   number: string;
   collection: string;
   rarity: string;
+  rarityId?: string;
+  rarityColor?: string;
+  energyType?: string;
+  energyTypeId?: string;
+  energyTypeIcon?: string;
+  energyTypeColor?: string;
   category?: string;
   price: number;
   color?: string;
   imageUrl?: string;
 }
+
+interface CollectionOption { id: string; name: string; code: string; }
+interface RarityOption    { id: string; name: string; color?: string; icon?: string; }
+interface EnergyOption    { id: string; name: string; icon?: string; color?: string; }
 
 const DEFAULT_DEMO_CARDS: CardItem[] = [
   {
@@ -24,6 +34,9 @@ const DEFAULT_DEMO_CARDS: CardItem[] = [
     number: '004/102',
     collection: 'Base Set',
     rarity: '1-Star Rare',
+    energyType: 'Fuego',
+    energyTypeIcon: '🔥',
+    energyTypeColor: '#ef4444',
     category: 'Pokémon',
     price: 349.99,
     color: '#eab308',
@@ -35,6 +48,9 @@ const DEFAULT_DEMO_CARDS: CardItem[] = [
     number: '058/102',
     collection: 'Base Set',
     rarity: '2-Star Secret Rare',
+    energyType: 'Eléctrico',
+    energyTypeIcon: '⚡',
+    energyTypeColor: '#eab308',
     category: 'Pokémon',
     price: 899.99,
     color: '#8b5cf6',
@@ -46,6 +62,9 @@ const DEFAULT_DEMO_CARDS: CardItem[] = [
     number: '010/102',
     collection: 'Base Set',
     rarity: 'Rainbow Hyper Rare',
+    energyType: 'Psíquico',
+    energyTypeIcon: '🔮',
+    energyTypeColor: '#a855f7',
     category: 'Pokémon',
     price: 120.0,
     color: '#ec4899',
@@ -53,61 +72,104 @@ const DEFAULT_DEMO_CARDS: CardItem[] = [
   },
 ];
 
-export default function PublicHomePage() {
-  const [cards, setCards] = useState<CardItem[]>([]);
-  const [collectionsList, setCollectionsList] = useState<{ id: string; name: string; code: string }[]>([]);
-  const [loading, setLoading] = useState(true);
+const SELECT_STYLE: React.CSSProperties = {
+  padding: '0.65rem 1rem',
+  borderRadius: '8px',
+  border: '1px solid #3f3f46',
+  backgroundColor: '#09090b',
+  color: '#f4f4f5',
+  fontSize: '0.9rem',
+  width: '100%',
+  cursor: 'pointer',
+  outline: 'none',
+  appearance: 'none',
+  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a1a1aa' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
+  backgroundRepeat: 'no-repeat',
+  backgroundPosition: 'right 12px center',
+  paddingRight: '2.5rem',
+};
 
-  const [search, setSearch] = useState('');
+export default function PublicHomePage() {
+  const [cards, setCards]                         = useState<CardItem[]>([]);
+  const [collectionsList, setCollectionsList]     = useState<CollectionOption[]>([]);
+  const [raritiesList, setRaritiesList]           = useState<RarityOption[]>([]);
+  const [energyTypesList, setEnergyTypesList]     = useState<EnergyOption[]>([]);
+  const [loading, setLoading]                     = useState(true);
+
+  const [search, setSearch]                       = useState('');
   const [selectedCollection, setSelectedCollection] = useState('ALL');
-  const [selectedCategory, setSelectedCategory] = useState('ALL');
+  const [selectedRarity, setSelectedRarity]       = useState('ALL');
+  const [selectedEnergyType, setSelectedEnergyType] = useState('ALL');
 
   useEffect(() => {
     async function loadCatalogData() {
       setLoading(true);
 
-      // Fetch dynamic collections for filter dropdown
+      // Fetch all filter data + cards in parallel
+      const [resCol, resRar, resEnergy, resCards] = await Promise.allSettled([
+        fetch(`${API_BASE_URL}/api/collections`),
+        fetch(`${API_BASE_URL}/api/rarities`),
+        fetch(`${API_BASE_URL}/api/energy-types`),
+        fetch(`${API_BASE_URL}/api/cards?limit=100`),
+      ]);
+
+      // Collections
       try {
-        const resCol = await fetch(`${API_BASE_URL}/api/collections`);
-        if (resCol.ok) {
-          const jsonCol = await resCol.json();
-          if (Array.isArray(jsonCol) && jsonCol.length > 0) {
-            setCollectionsList(jsonCol.map((c: any) => ({ id: c.id, name: c.name, code: c.code })));
+        if (resCol.status === 'fulfilled' && resCol.value.ok) {
+          const json = await resCol.value.json();
+          if (Array.isArray(json) && json.length > 0) {
+            setCollectionsList(json.map((c: any) => ({ id: c.id, name: c.name, code: c.code })));
           }
         }
-      } catch (e) {
-        console.warn('API error when fetching collections:', e);
-      }
+      } catch (e) { console.warn('Collections fetch error', e); }
 
-      // Fetch dynamic cards from API
+      // Rarities
+      try {
+        if (resRar.status === 'fulfilled' && resRar.value.ok) {
+          const json = await resRar.value.json();
+          if (Array.isArray(json)) {
+            setRaritiesList(json.map((r: any) => ({ id: r.id, name: r.name, color: r.color, icon: r.icon })));
+          }
+        }
+      } catch (e) { console.warn('Rarities fetch error', e); }
+
+      // Energy types
+      try {
+        if (resEnergy.status === 'fulfilled' && resEnergy.value.ok) {
+          const json = await resEnergy.value.json();
+          if (Array.isArray(json)) {
+            setEnergyTypesList(json.map((e: any) => ({ id: e.id, name: e.name, icon: e.icon, color: e.color })));
+          }
+        }
+      } catch (e) { console.warn('Energy types fetch error', e); }
+
+      // Cards
       let apiCards: CardItem[] = [];
       try {
-        const resCards = await fetch(`${API_BASE_URL}/api/cards`);
-        if (resCards.ok) {
-          const jsonCards = await resCards.json();
-          if (jsonCards.data && Array.isArray(jsonCards.data)) {
-            apiCards = jsonCards.data.map((c: any) => ({
-              id: c.id,
-              name: c.name,
-              number: c.number,
-              collection: c.collection?.name || 'Base Set',
-              rarity: c.rarity?.name || '1-Star Rare',
-              category: c.category?.name || 'Pokémon',
-              price: c.products?.[0]?.price ? Number(c.products[0].price) : 49.99,
-              color: c.rarity?.color || '#a855f7',
-              imageUrl: c.assets?.[0]?.url || c.imageUrl,
-            }));
-          }
+        if (resCards.status === 'fulfilled' && resCards.value.ok) {
+          const jsonCards = await resCards.value.json();
+          const data = jsonCards.data && Array.isArray(jsonCards.data) ? jsonCards.data : [];
+          apiCards = data.map((c: any) => ({
+            id: c.id,
+            name: c.name,
+            number: c.number,
+            collection: c.collection?.name || 'Base Set',
+            rarity: c.rarity?.name || 'Common',
+            rarityId: c.rarityId,
+            rarityColor: c.rarity?.color || '#a855f7',
+            energyType: c.energyType?.name || null,
+            energyTypeId: c.energyTypeId || null,
+            energyTypeIcon: c.energyType?.icon || null,
+            energyTypeColor: c.energyType?.color || null,
+            category: c.category?.name || 'Pokémon',
+            price: c.products?.[0]?.price ? Number(c.products[0].price) : 49.99,
+            color: c.rarity?.color || '#a855f7',
+            imageUrl: c.assets?.[0]?.url || c.imageUrl,
+          }));
         }
-      } catch (e) {
-        console.warn('API connection offline:', e);
-      }
+      } catch (e) { console.warn('Cards fetch error', e); }
 
-      if (apiCards.length > 0) {
-        setCards(apiCards);
-      } else {
-        setCards(DEFAULT_DEMO_CARDS);
-      }
+      setCards(apiCards.length > 0 ? apiCards : DEFAULT_DEMO_CARDS);
       setLoading(false);
     }
 
@@ -115,10 +177,12 @@ export default function PublicHomePage() {
   }, []);
 
   const filteredCards = cards.filter((c) => {
-    const matchesSearch = c.name.toLowerCase().includes(search.toLowerCase()) || c.number.toLowerCase().includes(search.toLowerCase());
-    const matchesCol = selectedCollection === 'ALL' || c.collection === selectedCollection;
-    const matchesCat = selectedCategory === 'ALL' || !c.category || c.category === selectedCategory;
-    return matchesSearch && matchesCol && matchesCat;
+    const matchesSearch     = c.name.toLowerCase().includes(search.toLowerCase()) ||
+                              c.number.toLowerCase().includes(search.toLowerCase());
+    const matchesCol        = selectedCollection === 'ALL' || c.collection === selectedCollection;
+    const matchesRarity     = selectedRarity === 'ALL' || c.rarity === selectedRarity;
+    const matchesEnergy     = selectedEnergyType === 'ALL' || c.energyType === selectedEnergyType;
+    return matchesSearch && matchesCol && matchesRarity && matchesEnergy;
   });
 
   return (
@@ -163,7 +227,7 @@ export default function PublicHomePage() {
 
       {/* Main Catalog Section */}
       <main style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-        {/* Page Title Header */}
+        {/* Page Title */}
         <div>
           <h1 style={{ margin: 0, fontSize: '2rem', fontWeight: 800 }}>Catálogo de Cartas TCG</h1>
           <p style={{ margin: '0.35rem 0 0 0', color: '#a1a1aa', fontSize: '0.95rem' }}>
@@ -171,73 +235,133 @@ export default function PublicHomePage() {
           </p>
         </div>
 
-        {/* Faceted Filters Bar */}
+        {/* ── Filtros ── */}
         <div style={{
           backgroundColor: '#18181b',
           border: '1px solid #27272a',
           borderRadius: '12px',
           padding: '1.25rem',
-          display: 'grid',
-          gridTemplateColumns: '2fr 1fr 1fr',
-          gap: '1rem',
-          alignItems: 'center'
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.85rem',
         }}>
-          <input
-            type="text"
-            placeholder="🔍 Buscar por nombre o número de carta..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            style={{
-              padding: '0.65rem 1rem',
-              borderRadius: '8px',
-              border: '1px solid #3f3f46',
-              backgroundColor: '#09090b',
-              color: '#f4f4f5',
-              fontSize: '0.9rem',
-              outline: 'none'
-            }}
-          />
+          {/* Fila 1 — Búsqueda */}
+          <div style={{ position: 'relative' }}>
+            <span style={{
+              position: 'absolute',
+              left: '12px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              fontSize: '1rem',
+              pointerEvents: 'none',
+            }}>🔍</span>
+            <input
+              type="text"
+              placeholder="Buscar por nombre o número de carta..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '0.65rem 1rem 0.65rem 2.5rem',
+                borderRadius: '8px',
+                border: '1px solid #3f3f46',
+                backgroundColor: '#09090b',
+                color: '#f4f4f5',
+                fontSize: '0.9rem',
+                outline: 'none',
+                boxSizing: 'border-box',
+              }}
+            />
+          </div>
 
-          {/* Dynamic Collection Select */}
-          <select
-            value={selectedCollection}
-            onChange={(e) => setSelectedCollection(e.target.value)}
-            style={{
-              padding: '0.65rem',
-              borderRadius: '8px',
-              border: '1px solid #3f3f46',
-              backgroundColor: '#09090b',
-              color: '#f4f4f5',
-              fontSize: '0.9rem'
-            }}
-          >
-            <option value="ALL">Todas las Colecciones</option>
-            {collectionsList.map((col) => (
-              <option key={col.id} value={col.name}>
-                {col.name} ({col.code})
-              </option>
-            ))}
-          </select>
+          {/* Fila 2 — 3 selects */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: '0.75rem',
+          }}>
+            {/* Colección */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+              <label style={{ fontSize: '0.75rem', color: '#71717a', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                📦 Colección
+              </label>
+              <select value={selectedCollection} onChange={(e) => setSelectedCollection(e.target.value)} style={SELECT_STYLE}>
+                <option value="ALL">Todas las Colecciones</option>
+                {collectionsList.map((col) => (
+                  <option key={col.id} value={col.name}>{col.name} ({col.code})</option>
+                ))}
+              </select>
+            </div>
 
-          {/* Dynamic Category Select */}
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            style={{
-              padding: '0.65rem',
-              borderRadius: '8px',
-              border: '1px solid #3f3f46',
-              backgroundColor: '#09090b',
-              color: '#f4f4f5',
-              fontSize: '0.9rem'
-            }}
-          >
-            <option value="ALL">Todas las Categorías</option>
-            <option value="Pokémon">Pokémon</option>
-            <option value="Trainer">Trainer</option>
-            <option value="Energy">Energy</option>
-          </select>
+            {/* Rareza */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+              <label style={{ fontSize: '0.75rem', color: '#71717a', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                ⭐ Rareza
+              </label>
+              <select value={selectedRarity} onChange={(e) => setSelectedRarity(e.target.value)} style={SELECT_STYLE}>
+                <option value="ALL">Todas las Rarezas</option>
+                {raritiesList.map((r) => (
+                  <option key={r.id} value={r.name}>{r.icon ? `${r.icon} ` : ''}{r.name}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Tipo de Energía */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+              <label style={{ fontSize: '0.75rem', color: '#71717a', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                ⚡ Tipo de Energía
+              </label>
+              <select value={selectedEnergyType} onChange={(e) => setSelectedEnergyType(e.target.value)} style={SELECT_STYLE}>
+                <option value="ALL">Todos los Tipos</option>
+                {energyTypesList.map((e) => (
+                  <option key={e.id} value={e.name}>{e.icon ? `${e.icon} ` : ''}{e.name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Resumen de filtros activos */}
+          {(selectedCollection !== 'ALL' || selectedRarity !== 'ALL' || selectedEnergyType !== 'ALL' || search) && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '0.8rem', color: '#71717a' }}>Filtros activos:</span>
+              {search && (
+                <span style={{ fontSize: '0.75rem', padding: '0.2rem 0.6rem', borderRadius: '99px', backgroundColor: '#38bdf820', color: '#38bdf8', border: '1px solid #38bdf840' }}>
+                  🔍 "{search}"
+                </span>
+              )}
+              {selectedCollection !== 'ALL' && (
+                <span style={{ fontSize: '0.75rem', padding: '0.2rem 0.6rem', borderRadius: '99px', backgroundColor: '#a855f720', color: '#c084fc', border: '1px solid #a855f740' }}>
+                  📦 {selectedCollection}
+                </span>
+              )}
+              {selectedRarity !== 'ALL' && (
+                <span style={{ fontSize: '0.75rem', padding: '0.2rem 0.6rem', borderRadius: '99px', backgroundColor: '#f59e0b20', color: '#fbbf24', border: '1px solid #f59e0b40' }}>
+                  ⭐ {selectedRarity}
+                </span>
+              )}
+              {selectedEnergyType !== 'ALL' && (
+                <span style={{ fontSize: '0.75rem', padding: '0.2rem 0.6rem', borderRadius: '99px', backgroundColor: '#10b98120', color: '#34d399', border: '1px solid #10b98140' }}>
+                  ⚡ {selectedEnergyType}
+                </span>
+              )}
+              <button
+                onClick={() => { setSearch(''); setSelectedCollection('ALL'); setSelectedRarity('ALL'); setSelectedEnergyType('ALL'); }}
+                style={{ fontSize: '0.75rem', padding: '0.2rem 0.6rem', borderRadius: '99px', backgroundColor: '#27272a', color: '#a1a1aa', border: '1px solid #3f3f46', cursor: 'pointer' }}
+              >
+                ✕ Limpiar
+              </button>
+            </div>
+          )}
         </div>
+
+        {/* Conteo de resultados */}
+        {!loading && (
+          <div style={{ fontSize: '0.875rem', color: '#71717a' }}>
+            {filteredCards.length === cards.length
+              ? `${cards.length} cartas en el catálogo`
+              : `${filteredCards.length} de ${cards.length} cartas`}
+          </div>
+        )}
 
         {/* Cards Grid */}
         {loading ? (
@@ -248,16 +372,20 @@ export default function PublicHomePage() {
           <div style={{ textAlign: 'center', padding: '4rem', backgroundColor: '#18181b', borderRadius: '14px', border: '1px solid #27272a' }}>
             <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>📇</div>
             <h3 style={{ margin: 0, color: '#f4f4f5' }}>No se encontraron cartas</h3>
-            <p style={{ color: '#a1a1aa', marginTop: '0.5rem' }}>Agrega nuevas cartas desde el panel de administración para verlas publicadas aquí en tiempo real.</p>
+            <p style={{ color: '#a1a1aa', marginTop: '0.5rem' }}>
+              Prueba cambiando los filtros o{' '}
+              <button
+                onClick={() => { setSearch(''); setSelectedCollection('ALL'); setSelectedRarity('ALL'); setSelectedEnergyType('ALL'); }}
+                style={{ background: 'none', border: 'none', color: '#38bdf8', cursor: 'pointer', textDecoration: 'underline', fontSize: 'inherit' }}
+              >
+                limpia los filtros
+              </button>.
+            </p>
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1.5rem' }}>
             {filteredCards.map((card) => (
-              <Link
-                key={card.id}
-                href={`/cards/${card.id}`}
-                style={{ textDecoration: 'none' }}
-              >
+              <Link key={card.id} href={`/cards/${card.id}`} style={{ textDecoration: 'none' }}>
                 <div style={{
                   backgroundColor: '#18181b',
                   border: '1px solid #27272a',
@@ -267,23 +395,28 @@ export default function PublicHomePage() {
                   flexDirection: 'column',
                   gap: '0.75rem',
                   transition: 'transform 0.2s ease, border-color 0.2s ease',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ fontSize: '0.8rem', color: '#a1a1aa' }}>#{card.number}</span>
-                    <span style={{
-                      fontSize: '0.7rem',
-                      fontWeight: 700,
-                      padding: '0.2rem 0.5rem',
-                      borderRadius: '4px',
-                      backgroundColor: `${card.color || '#a855f7'}20`,
-                      color: card.color || '#c084fc'
-                    }}>
-                      {card.rarity}
-                    </span>
+                    <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center' }}>
+                      {card.energyTypeIcon && (
+                        <span style={{ fontSize: '0.9rem' }} title={card.energyType || ''}>{card.energyTypeIcon}</span>
+                      )}
+                      <span style={{
+                        fontSize: '0.7rem',
+                        fontWeight: 700,
+                        padding: '0.2rem 0.5rem',
+                        borderRadius: '4px',
+                        backgroundColor: `${card.color || '#a855f7'}20`,
+                        color: card.color || '#c084fc',
+                      }}>
+                        {card.rarity}
+                      </span>
+                    </div>
                   </div>
 
-                  {/* Card Artwork Image Container */}
+                  {/* Card Artwork */}
                   <div style={{
                     height: '240px',
                     borderRadius: '10px',
@@ -292,14 +425,10 @@ export default function PublicHomePage() {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    overflow: 'hidden'
+                    overflow: 'hidden',
                   }}>
                     {card.imageUrl ? (
-                      <img
-                        src={card.imageUrl}
-                        alt={card.name}
-                        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                      />
+                      <img src={card.imageUrl} alt={card.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                     ) : (
                       <div style={{ fontSize: '3rem' }}>📇</div>
                     )}
@@ -308,6 +437,11 @@ export default function PublicHomePage() {
                   <div>
                     <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#f4f4f5', fontWeight: 700 }}>{card.name}</h3>
                     <div style={{ fontSize: '0.8rem', color: '#38bdf8', marginTop: '0.2rem' }}>{card.collection}</div>
+                    {card.energyType && (
+                      <div style={{ fontSize: '0.75rem', color: card.energyTypeColor || '#a1a1aa', marginTop: '0.15rem' }}>
+                        {card.energyTypeIcon} {card.energyType}
+                      </div>
+                    )}
                   </div>
 
                   <div style={{
@@ -316,7 +450,7 @@ export default function PublicHomePage() {
                     borderTop: '1px solid #27272a',
                     display: 'flex',
                     justifyContent: 'space-between',
-                    alignItems: 'center'
+                    alignItems: 'center',
                   }}>
                     <span style={{ fontSize: '0.8rem', color: '#a1a1aa' }}>Desde:</span>
                     <span style={{ fontSize: '1.1rem', fontWeight: 800, color: '#10b981' }}>${card.price.toFixed(2)}</span>
@@ -330,4 +464,3 @@ export default function PublicHomePage() {
     </div>
   );
 }
-

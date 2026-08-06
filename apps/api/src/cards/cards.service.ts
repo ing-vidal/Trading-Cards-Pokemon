@@ -27,6 +27,7 @@ export class CardsService {
     if (filters.collectionId) where.collectionId = filters.collectionId;
     if (filters.rarityId) where.rarityId = filters.rarityId;
     if (filters.categoryId) where.categoryId = filters.categoryId;
+    if (filters.energyTypeId) where.energyTypeId = filters.energyTypeId;
     if (filters.status) where.status = filters.status;
 
     const [cards, total] = await Promise.all([
@@ -38,6 +39,7 @@ export class CardsService {
           collection: true,
           rarity: { include: { preset: true } },
           category: true,
+          energyType: true,
           assets: true,
           products: {
             take: 5,
@@ -73,6 +75,7 @@ export class CardsService {
         collection: true,
         rarity: { include: { preset: true } },
         category: true,
+        energyType: true,
         assets: true,
         effects: { include: { preset: true } },
         products: true,
@@ -144,6 +147,7 @@ export class CardsService {
         collection: true,
         rarity: true,
         category: true,
+        energyType: true,
         assets: true,
         products: true,
       },

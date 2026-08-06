@@ -162,6 +162,19 @@ model Rarity {
   @@map("rarities")
 }
 
+model EnergyType {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  slug      String   @unique
+  icon      String?
+  color     String?
+  cards     Card[]
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("energy_types")
+}
+
 model Card {
   id           String       @id @default(uuid())
   name         String
@@ -181,6 +194,8 @@ model Card {
   category     Category?    @relation(fields: [categoryId], references: [id])
   rarityId     String       @map("rarity_id")
   rarity       Rarity       @relation(fields: [rarityId], references: [id])
+  energyTypeId String?      @map("energy_type_id")
+  energyType   EnergyType?  @relation(fields: [energyTypeId], references: [id])
   assets       Asset[]
   effects      CardEffect[]
   products     Product[]
@@ -189,6 +204,7 @@ model Card {
 
   @@index([collectionId, status])
   @@index([rarityId])
+  @@index([energyTypeId])
   @@map("cards")
 }
 

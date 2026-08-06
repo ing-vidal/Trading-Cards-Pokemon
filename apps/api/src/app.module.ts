@@ -14,6 +14,7 @@ import { StorageModule } from './storage/storage.module';
 import { AssetsModule } from './assets/assets.module';
 import { ProductsModule } from './products/products.module';
 import { OrdersModule } from './orders/orders.module';
+import { EnergyTypesModule } from './energy-types/energy-types.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { OrdersModule } from './orders/orders.module';
     AssetsModule,
     ProductsModule,
     OrdersModule,
+    EnergyTypesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

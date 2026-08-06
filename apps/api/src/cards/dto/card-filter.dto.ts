@@ -20,6 +20,10 @@ export class CardFilterDto {
   categoryId?: string;
 
   @IsOptional()
+  @IsString()
+  energyTypeId?: string;
+
+  @IsOptional()
   @IsEnum(CardStatus)
   status?: CardStatus;
 

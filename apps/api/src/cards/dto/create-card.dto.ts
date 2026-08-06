@@ -60,6 +60,10 @@ export class CreateCardDto {
 
   @IsOptional()
   @IsString()
+  energyTypeId?: string;
+
+  @IsOptional()
+  @IsString()
   imageUrl?: string;
 
   @IsOptional()
