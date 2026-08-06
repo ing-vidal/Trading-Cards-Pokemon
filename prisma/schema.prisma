@@ -24,12 +24,16 @@ enum CardStatus {
 }
 
 enum RarityLevel {
-  STAR_1
-  STAR_2
-  GOLD
-  RAINBOW
-  SECRET
-  PROMO
+  COMMON        // ◆
+  UNCOMMON      // ◆◆
+  RARE          // ◆◆◆
+  DOUBLE_RARE   // ◆◆◆◆
+  STAR_1        // ⭐
+  STAR_2        // ⭐⭐
+  STAR_3        // ⭐⭐⭐
+  IMMERSIVE     // ✦ (rainbow)
+  DOUBLE_IMMERSIVE // ✦✦
+  CROWN         // 👑
 }
 
 enum AssetType {
