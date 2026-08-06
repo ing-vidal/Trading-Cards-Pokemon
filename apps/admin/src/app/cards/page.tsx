@@ -64,14 +64,16 @@ export default function CardsAdminPage() {
   ];
 
   const DEFAULT_RARITIES = [
-    { id: 'rarity-1', name: '1-Star Rare',             color: '#3b82f6', shader: 'basic-foil' },
-    { id: 'rarity-2', name: '2-Star Secret Rare',       color: '#8b5cf6', shader: 'rainbow-hyper' },
-    { id: 'rarity-3', name: 'Gold Ultra Rare',          color: '#eab308', shader: 'gold-relic' },
-    { id: 'rarity-4', name: 'Rainbow Hyper Rare',       color: '#ec4899', shader: 'rainbow-hyper' },
-    { id: 'rarity-5', name: 'Secret Rare Diamond',      color: '#a855f7', shader: 'glass-shatter' },
-    { id: 'rarity-6', name: 'Promotional',              color: '#10b981', shader: 'promo-glow' },
-    { id: 'rarity-7', name: 'Special Illustration Rare',color: '#818cf8', shader: 'special-art' },
-    { id: 'rarity-8', name: 'Trainer Gallery',          color: '#94a3b8', shader: 'trainer-gallery' },
+    { id: 'rarity-1',  name: 'Common',           color: '#94a3b8', shader: 'basic-foil' },
+    { id: 'rarity-2',  name: 'Uncommon',          color: '#60a5fa', shader: 'basic-foil' },
+    { id: 'rarity-3',  name: 'Rare',              color: '#34d399', shader: 'basic-foil' },
+    { id: 'rarity-4',  name: 'Double Rare',       color: '#a78bfa', shader: 'basic-foil' },
+    { id: 'rarity-5',  name: '1-Star Rare',       color: '#fbbf24', shader: 'basic-foil' },
+    { id: 'rarity-6',  name: '2-Star Rare',       color: '#f59e0b', shader: 'rainbow-hyper' },
+    { id: 'rarity-7',  name: '3-Star Rare',       color: '#f97316', shader: 'rainbow-hyper' },
+    { id: 'rarity-8',  name: 'Immersive Rare',    color: '#e879f9', shader: 'glass-shatter' },
+    { id: 'rarity-9',  name: 'Double Immersive',  color: '#c026d3', shader: 'glass-shatter' },
+    { id: 'rarity-10', name: 'Crown Rare',        color: '#eab308', shader: 'gold-relic' },
   ];
 
   // Fetch collections list for select dropdowns
@@ -117,16 +119,13 @@ export default function CardsAdminPage() {
           const list = json.map((r: any) => {
             const dbShader = r.preset?.shader;
             const isPlaceholder = !dbShader || dbShader === 'basic-foil';
-            // Map by level first (most reliable), then by name, then DB shader
+            // Map shader by TCG Pocket rarity level
             const level = r.level || '';
             let shader = dbShader || 'basic-foil';
             if (isPlaceholder || level) {
-              if (level === 'GOLD'    || r.name?.toLowerCase().includes('gold'))      shader = 'gold-relic';
-              else if (level === 'RAINBOW' || r.name?.toLowerCase().includes('rainbow')) shader = 'rainbow-hyper';
-              else if (level === 'SECRET'  || r.name?.toLowerCase().includes('secret'))  shader = 'glass-shatter';
-              else if (level === 'PROMO'   || r.name?.toLowerCase().includes('promo'))   shader = 'promo-glow';
-              else if (r.name?.toLowerCase().includes('special') || r.name?.toLowerCase().includes('illustration')) shader = 'special-art';
-              else if (r.name?.toLowerCase().includes('trainer') || r.name?.toLowerCase().includes('gallery'))      shader = 'trainer-gallery';
+              if (level === 'CROWN')            shader = 'gold-relic';
+              else if (level === 'IMMERSIVE' || level === 'DOUBLE_IMMERSIVE') shader = 'glass-shatter';
+              else if (level === 'STAR_2' || level === 'STAR_3') shader = 'rainbow-hyper';
               else if (!isPlaceholder) shader = dbShader;
             }
             return { id: r.id, name: r.name, color: r.color || '#a855f7', shader };
