@@ -457,8 +457,15 @@ export default function CardsAdminPage() {
     const file = e.target.files?.[0];
     if (!file) return;
     const XLSX = await import('xlsx');
-    const data = await file.arrayBuffer();
-    const workbook = XLSX.read(data, { type: 'array' });
+    // Support CSV and XLSX/XLS files
+    let workbook: any;
+    if (file.name.toLowerCase().endsWith('.csv')) {
+      const csvText = await file.text();
+      workbook = XLSX.read(csvText, { type: 'string' });
+    } else {
+      const data = await file.arrayBuffer();
+      workbook = XLSX.read(data, { type: 'array' });
+    }
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
     const rows = XLSX.utils.sheet_to_json<any>(sheet);
@@ -607,11 +614,11 @@ export default function CardsAdminPage() {
               fontSize: '0.86rem'
             }}
           >
-            ⤒ Importar Excel
+            ⤒ Importar Excel/CSV
           </button>
 
           {/* Hidden inputs for selecting Excel and optional images folder */}
-          <input ref={excelFileRef} type="file" accept=".xlsx,.xls" style={{ display: 'none' }} onChange={handleExcelFile} />
+          <input ref={excelFileRef} type="file" accept=".xlsx,.xls,.csv" style={{ display: 'none' }} onChange={handleExcelFile} />
           <input
             ref={imagesInputRef}
             type="file"
