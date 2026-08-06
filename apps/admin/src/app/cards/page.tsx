@@ -23,6 +23,7 @@ interface CardItem {
   status: 'PUBLISHED' | 'DRAFT' | 'ARCHIVED';
   hp?: number;
   imageUrl?: string;
+  description?: string;
   price?: number;
   stock?: number;
 }
