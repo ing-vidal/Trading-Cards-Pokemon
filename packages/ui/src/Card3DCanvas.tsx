@@ -63,8 +63,8 @@ const RARITY_LIGHTS: Record<string, { ambient: number; d1Color: number; d1Intens
     ambient: 0.9,
     d1Color: 0xffffff,
     d1Intensity: 1.4,
-    d2Color: 0xa855f7,
-    d2Intensity: 0.6,
+    d2Color: 0xd9e7d2,
+    d2Intensity: 0.45,
   },
 };
 

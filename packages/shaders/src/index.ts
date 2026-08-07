@@ -11,11 +11,19 @@ export interface ShaderPreset {
 export const BASIC_FOIL_PRESET: ShaderPreset = {
   id: 'basic-foil',
   name: 'Standard Holographic Foil',
-  description: 'Holograma lineal clásico con difracción reactiva al ángulo de visión.',
+  description: 'Holograma Common con barrido diagonal, difracción angular, brillo especular y microdestellos.',
   vertexShader: `
     varying vec2 vUv;
     varying vec3 vNormal;
     varying vec3 vViewPosition;
+
+    float hash(vec2 p) {
+      return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+    }
+
+    vec3 spectralColor(float value) {
+      return 0.5 + 0.5 * cos(6.28318 * (value + vec3(0.0, 0.33, 0.67)));
+    }
 
     void main() {
       vUv = uv;
@@ -37,17 +45,25 @@ export const BASIC_FOIL_PRESET: ShaderPreset = {
     void main() {
       vec4 baseColor = texture2D(tDiffuse, vUv);
       vec3 viewDir = normalize(vViewPosition);
-      float fresnel = pow(1.0 - max(dot(viewDir, vNormal), 0.0), 2.5);
+      float facing = max(dot(viewDir, vNormal), 0.0);
+      float fresnel = pow(1.0 - facing, 2.2);
+      float angle = dot(vUv - 0.5, vec2(0.9, 0.55)) + uTime * 0.055 + fresnel * 0.18;
+      float sweep = exp(-pow((fract(angle) - 0.5) * 3.0, 2.0));
+      float diffraction = sin(angle * 28.0 - uTime * 0.8) * 0.5 + 0.5;
+      vec3 holoColor = spectralColor(angle * 0.72 + uTime * 0.012);
 
-      // Subtle rainbow tint reacting to angle
-      vec3 holoColor = 0.5 + 0.5 * cos(uTime * 1.2 + vUv.xyx * 4.0 + vec3(0.0, 2.0, 4.0));
+      float crossSweep = sin(dot(vUv - 0.5, vec2(-0.55, 1.0)) * 18.0 - uTime * 0.45) * 0.5 + 0.5;
+      crossSweep = pow(crossSweep, 10.0);
+      vec2 sparkleGrid = floor(vUv * vec2(42.0, 56.0));
+      float sparkle = step(0.985, hash(sparkleGrid));
+      sparkle *= pow(max(dot(viewDir, vNormal), 0.0), 4.0);
+      float mouseHighlight = exp(-18.0 * distance(vUv, uMousePos * 0.18 + 0.5));
 
-      // Soft shimmer line
-      float shimmer = sin(vUv.y * 20.0 - uTime * 2.0) * 0.5 + 0.5;
-      shimmer = pow(shimmer, 6.0) * 0.3;
-
-      vec3 finalColor = mix(baseColor.rgb, holoColor, fresnel * uIntensity * 0.6);
-      finalColor += vec3(shimmer) * uIntensity;
+      vec3 finalColor = baseColor.rgb;
+      finalColor = mix(finalColor, finalColor * (0.72 + holoColor * 0.58), fresnel * uIntensity);
+      finalColor += holoColor * sweep * uIntensity * 0.28;
+      finalColor += vec3(0.9, 0.96, 1.0) * diffraction * sweep * uIntensity * 0.12;
+      finalColor += vec3(1.0) * (crossSweep * 0.12 + sparkle * 0.42 + mouseHighlight * 0.18) * uIntensity;
 
       gl_FragColor = vec4(finalColor, baseColor.a);
     }
