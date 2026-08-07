@@ -24,6 +24,7 @@ interface PageProps {
 function mapRarityToPreset(rarityName?: string): string {
   if (!rarityName) return 'basic-foil';
   const r = rarityName.toLowerCase();
+  if (r.includes('1-star') || r.includes('1 star')) return 'star-foil';
   if (r.includes('double rare')) return 'double-rare-foil';
   if (r === 'rare') return 'rare-foil';
   if (r.includes('rainbow') || r.includes('hyper')) return 'rainbow-hyper';
@@ -92,6 +93,7 @@ export default function CardDetailPage({ params }: PageProps) {
               if (level === 'COMMON' || level === 'UNCOMMON') return 'basic-foil';
               if (level === 'RARE')    return 'rare-foil';
               if (level === 'DOUBLE_RARE') return 'double-rare-foil';
+              if (level === 'STAR_1') return 'star-foil';
               if (level === 'GOLD')    return 'gold-relic';
               if (level === 'RAINBOW') return 'rainbow-hyper';
               if (level === 'SECRET')  return 'glass-shatter';

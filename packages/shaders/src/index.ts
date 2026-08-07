@@ -218,6 +218,81 @@ export const DOUBLE_RARE_FOIL_PRESET: ShaderPreset = {
   },
 };
 
+// ─── ONE STAR FOIL ───────────────────────────────────────────────────────────
+export const ONE_STAR_FOIL_PRESET: ShaderPreset = {
+  id: 'star-foil',
+  name: 'One Star Galaxy Foil',
+  description: 'Marco galáctico nacarado con ondas curvas multicolor, estrellas suaves y borde prismático.',
+  vertexShader: `
+    varying vec2 vUv;
+    varying vec3 vNormal;
+    varying vec3 vViewPosition;
+
+    void main() {
+      vUv = uv;
+      vNormal = normalize(normalMatrix * normal);
+      vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+      vViewPosition = -mvPosition.xyz;
+      gl_Position = projectionMatrix * mvPosition;
+    }
+  `,
+  fragmentShader: `
+    uniform sampler2D tDiffuse;
+    uniform float uTime;
+    uniform float uIntensity;
+    uniform vec2 uMousePos;
+    varying vec2 vUv;
+    varying vec3 vNormal;
+    varying vec3 vViewPosition;
+
+    float hash(vec2 p) {
+      return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+    }
+
+    vec3 galaxyColor(float value) {
+      return 0.5 + 0.5 * cos(6.28318 * (value + vec3(0.0, 0.31, 0.66)));
+    }
+
+    void main() {
+      vec4 baseColor = texture2D(tDiffuse, vUv);
+      vec3 viewDir = normalize(vViewPosition);
+      float facing = max(dot(viewDir, vNormal), 0.0);
+      float fresnel = pow(1.0 - facing, 1.8);
+
+      vec2 centered = vUv - 0.5;
+      float border = smoothstep(0.34, 0.47, max(abs(centered.x), abs(centered.y)));
+      float innerBorder = smoothstep(0.27, 0.42, max(abs(centered.x), abs(centered.y)));
+      float waveA = sin(vUv.x * 34.0 + sin(vUv.y * 11.0 + uTime * 0.42) * 4.0 - uTime * 0.65) * 0.5 + 0.5;
+      float waveB = sin(vUv.y * 29.0 + cos(vUv.x * 14.0 - uTime * 0.35) * 5.0 + uTime * 0.48) * 0.5 + 0.5;
+      float waves = pow(waveA * waveB, 1.35);
+      vec3 galaxy = galaxyColor(vUv.x * 0.72 + vUv.y * 0.36 + uTime * 0.018 + waves * 0.12);
+
+      vec2 sparkleGrid = floor(vUv * vec2(46.0, 64.0));
+      float randomSpark = hash(sparkleGrid);
+      float sparkle = step(0.988, randomSpark) * pow(facing, 3.0);
+      sparkle *= 0.6 + 0.4 * sin(uTime * 2.8 + randomSpark * 17.0);
+      float edgeFacing = 1.0 - abs(vNormal.z);
+      float edgeReflection = pow(edgeFacing, 1.25) * (0.35 + 0.65 * facing);
+      vec3 edgeColor = galaxyColor(dot(vNormal.xy, vec2(0.75, 0.65)) + uTime * 0.1);
+      float mouseHighlight = exp(-20.0 * distance(vUv, uMousePos * 0.18 + 0.5));
+
+      vec3 finalColor = baseColor.rgb;
+      finalColor = mix(finalColor, finalColor * (0.88 + galaxy * 0.28), fresnel * uIntensity * 0.55);
+      finalColor += galaxy * waves * border * uIntensity * 0.7;
+      finalColor += galaxy * innerBorder * border * uIntensity * 0.22;
+      finalColor += vec3(1.0) * (sparkle * 0.46 + mouseHighlight * 0.12) * uIntensity;
+      finalColor += edgeColor * edgeReflection * uIntensity * 0.85;
+
+      gl_FragColor = vec4(finalColor, baseColor.a);
+    }
+  `,
+  uniformsDefaults: {
+    uTime: 0,
+    uIntensity: 0.82,
+    uMousePos: [0, 0],
+  },
+};
+
 // ─── RAINBOW HYPER ──────────────────────────────────────────────────────────
 export const RAINBOW_HYPER_PRESET: ShaderPreset = {
   id: 'rainbow-hyper',
@@ -791,6 +866,7 @@ export const ALL_PRESETS: ShaderPreset[] = [
   BASIC_FOIL_PRESET,
   RARE_FOIL_PRESET,
   DOUBLE_RARE_FOIL_PRESET,
+  ONE_STAR_FOIL_PRESET,
   RAINBOW_HYPER_PRESET,
   GOLD_RELIC_PRESET,
   GLASS_SHATTER_PRESET,
