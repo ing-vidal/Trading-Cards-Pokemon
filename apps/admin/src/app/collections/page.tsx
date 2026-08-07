@@ -89,11 +89,34 @@ const mergeCollections = (apiCollections: CollectionItem[], localCollections: Co
   return dedupeCollections(merged);
 };
 
+const COLLECTIONS_STORAGE_KEY = 'tcg_custom_collections';
+const DELETED_COLLECTIONS_STORAGE_KEY = 'tcg_deleted_collections';
+
 const persistCollections = (updated: CollectionItem[]) => {
   try {
-    localStorage.setItem('tcg_custom_collections', JSON.stringify(updated));
+    localStorage.setItem(COLLECTIONS_STORAGE_KEY, JSON.stringify(updated));
   } catch (e) {
     console.warn('Could not save collections to localStorage:', e);
+  }
+};
+
+const persistDeletedCollections = (deletedIds: string[]) => {
+  try {
+    localStorage.setItem(DELETED_COLLECTIONS_STORAGE_KEY, JSON.stringify(deletedIds));
+  } catch (e) {
+    console.warn('Could not save deleted collections to localStorage:', e);
+  }
+};
+
+const getDeletedCollections = () => {
+  try {
+    const saved = localStorage.getItem(DELETED_COLLECTIONS_STORAGE_KEY);
+    if (!saved) return [];
+    const parsed = JSON.parse(saved);
+    return Array.isArray(parsed) ? parsed.filter((value): value is string => typeof value === 'string') : [];
+  } catch (e) {
+    console.warn('Could not load deleted collections from localStorage:', e);
+    return [];
   }
 };
 
@@ -156,6 +179,7 @@ export default function CollectionsAdminPage() {
   // Fetch collections from API
   const fetchCollections = async () => {
     let apiCols: CollectionItem[] = [];
+    const deletedIds = getDeletedCollections();
 
     try {
       const res = await fetch(`${API_BASE_URL}/api/collections`, { cache: 'no-store' });
@@ -170,13 +194,14 @@ export default function CollectionsAdminPage() {
     }
 
     try {
-      const saved = localStorage.getItem('tcg_custom_collections');
+      const saved = localStorage.getItem(COLLECTIONS_STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
           const merged = mergeCollections(apiCols, parsed);
-          setCollections(merged);
-          persistCollections(merged);
+          const visibleCollections = merged.filter((col) => !deletedIds.includes(col.id || `${col.slug}-${col.code}`));
+          setCollections(visibleCollections);
+          persistCollections(visibleCollections);
           return;
         }
       }
@@ -184,9 +209,10 @@ export default function CollectionsAdminPage() {
       console.warn('Could not load collections from localStorage:', e);
     }
 
-    if (apiCols.length > 0) {
-      setCollections(apiCols);
-      persistCollections(apiCols);
+    const visibleApiCollections = apiCols.filter((col) => !deletedIds.includes(col.id || `${col.slug}-${col.code}`));
+    if (visibleApiCollections.length > 0) {
+      setCollections(visibleApiCollections);
+      persistCollections(visibleApiCollections);
     }
   };
 
@@ -371,9 +397,13 @@ export default function CollectionsAdminPage() {
       console.warn('API unavailable when deleting collection:', err);
     }
 
+    const deleteKey = deletingCol.id || `${deletingCol.slug}-${deletingCol.code}`;
+    const nextDeletedIds = Array.from(new Set([...getDeletedCollections(), deleteKey]));
+    persistDeletedCollections(nextDeletedIds);
+
     if (!deletedApi) {
       setCollections((prev) => {
-        const updatedList = prev.filter((c) => c.id !== deletingCol.id);
+        const updatedList = prev.filter((c) => (c.id || `${c.slug}-${c.code}`) !== deleteKey);
         const next = dedupeCollections(updatedList);
         persistCollections(next);
         return next;
@@ -547,7 +577,25 @@ export default function CollectionsAdminPage() {
 
               {/* Booster Pack Image & Title */}
               <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                {col.logo ? (
+                {col.images && col.images.length > 0 ? (
+                  <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', width: '60px' }}>
+                    {col.images.slice(0, 3).map((image, index) => (
+                      <img
+                        key={`${col.id}-${index}`}
+                        src={image}
+                        alt={`${col.name} ${index + 1}`}
+                        style={{
+                          width: '60px',
+                          height: '85px',
+                          objectFit: 'cover',
+                          borderRadius: '8px',
+                          border: '1px solid #38bdf840',
+                          boxShadow: '0 4px 10px rgba(0,0,0,0.4)'
+                        }}
+                      />
+                    ))}
+                  </div>
+                ) : col.logo ? (
                   <img
                     src={col.logo}
                     alt={col.name}
