@@ -13,6 +13,14 @@ export enum CardStatus {
   ARCHIVED = 'ARCHIVED'
 }
 
+export enum CardType {
+  POKEMON = 'POKEMON',
+  PARTIDARIO = 'PARTIDARIO',
+  OBJETO = 'OBJETO',
+  HERRAMIENTA = 'HERRAMIENTA',
+  ESTADIO = 'ESTADIO'
+}
+
 export enum RarityLevel {
   STAR_1 = 'STAR_1',
   STAR_2 = 'STAR_2',
@@ -112,6 +120,7 @@ export interface CardDto {
   slug: string;
   number: string;
   game: string;
+  cardType: CardType;
   language: string;
   description?: string;
   hp?: number;

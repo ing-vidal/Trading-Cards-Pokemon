@@ -1,6 +1,6 @@
 import { IsOptional, IsString, IsEnum, IsInt, Min } from 'class-validator';
 import { Type } from 'class-transformer';
-import { CardStatus } from '@prisma/client';
+import { CardStatus, CardType } from '@prisma/client';
 
 export class CardFilterDto {
   @IsOptional()
@@ -30,6 +30,10 @@ export class CardFilterDto {
   @IsOptional()
   @IsString()
   game?: string;
+
+  @IsOptional()
+  @IsEnum(CardType)
+  cardType?: CardType;
 
   @IsOptional()
   @IsString()

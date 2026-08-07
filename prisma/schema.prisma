@@ -23,6 +23,14 @@ enum CardStatus {
   ARCHIVED
 }
 
+enum CardType {
+  POKEMON
+  PARTIDARIO
+  OBJETO
+  HERRAMIENTA
+  ESTADIO
+}
+
 enum RarityLevel {
   COMMON        // ◆
   UNCOMMON      // ◆◆
@@ -186,6 +194,7 @@ model Card {
   slug         String       @unique
   number       String
   game         String       @default("Pokemon TCG")
+  cardType     CardType     @default(POKEMON)
   language     String       @default("English")
   description  String?
   hp           Int?

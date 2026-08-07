@@ -1,5 +1,5 @@
 import { IsOptional, IsString, IsInt, IsEnum, IsArray } from 'class-validator';
-import { CardStatus } from '@prisma/client';
+import { CardStatus, CardType } from '@prisma/client';
 
 export class UpdateCardDto {
   @IsOptional()
@@ -17,6 +17,10 @@ export class UpdateCardDto {
   @IsOptional()
   @IsString()
   game?: string;
+
+  @IsOptional()
+  @IsEnum(CardType)
+  cardType?: CardType;
 
   @IsOptional()
   @IsString()

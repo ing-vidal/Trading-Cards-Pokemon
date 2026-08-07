@@ -12,6 +12,7 @@ interface CardItem {
   collection: string;
   rarity: string;
   rarityId?: string;
+  cardType?: string | null;
   rarityColor?: string;
   energyType?: string | null;
   energyTypeId?: string | null;
@@ -32,6 +33,14 @@ const RARITY_LEVEL_ORDER: Record<string, number> = {
   STAR_1: 4, STAR_2: 5, STAR_3: 6,
   IMMERSIVE: 7, DOUBLE_IMMERSIVE: 8, CROWN: 9, PROMO: 10,
 };
+
+const CARD_TYPE_OPTIONS = [
+  { value: 'POKEMON', label: 'Pokémon' },
+  { value: 'PARTIDARIO', label: 'Partidario' },
+  { value: 'OBJETO', label: 'Objeto' },
+  { value: 'HERRAMIENTA', label: 'Herramienta' },
+  { value: 'ESTADIO', label: 'Estadio' },
+];
 
 // ─── Helper: renders icon(s) — supports JSON array for multi-image rarities ──
 function parseIcons(raw?: string | null): string[] {
@@ -254,6 +263,7 @@ export default function PublicHomePage() {
   const [selectedCollection, setSelectedCollection] = useState('ALL');
   const [selectedRarityId, setSelectedRarityId]     = useState('ALL');
   const [selectedEnergyTypeId, setSelectedEnergyTypeId] = useState('ALL');
+  const [selectedCardType, setSelectedCardType]     = useState('ALL');
 
   useEffect(() => {
     async function loadCatalogData() {
@@ -307,6 +317,7 @@ export default function PublicHomePage() {
             rarity: c.rarity?.name || 'Common',
             rarityId: c.rarityId,
             rarityColor: c.rarity?.color || '#a855f7',
+            cardType: c.cardType || 'POKEMON',
             energyType: c.energyType?.name || null,
             energyTypeId: c.energyTypeId || null,
             energyTypeIcon: c.energyType?.icon || null,
@@ -332,7 +343,8 @@ export default function PublicHomePage() {
     const matchesCol     = selectedCollection === 'ALL' || c.collection === selectedCollection;
     const matchesRarity  = selectedRarityId === 'ALL' || c.rarityId === selectedRarityId;
     const matchesEnergy  = selectedEnergyTypeId === 'ALL' || c.energyTypeId === selectedEnergyTypeId;
-    return matchesSearch && matchesCol && matchesRarity && matchesEnergy;
+    const matchesCardType = selectedCardType === 'ALL' || c.cardType === selectedCardType;
+    return matchesSearch && matchesCol && matchesRarity && matchesEnergy && matchesCardType;
   });
 
   const clearAll = () => {
@@ -340,9 +352,10 @@ export default function PublicHomePage() {
     setSelectedCollection('ALL');
     setSelectedRarityId('ALL');
     setSelectedEnergyTypeId('ALL');
+    setSelectedCardType('ALL');
   };
 
-  const hasActiveFilters = search || selectedCollection !== 'ALL' || selectedRarityId !== 'ALL' || selectedEnergyTypeId !== 'ALL';
+  const hasActiveFilters = search || selectedCollection !== 'ALL' || selectedRarityId !== 'ALL' || selectedEnergyTypeId !== 'ALL' || selectedCardType !== 'ALL';
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#09090b', color: '#f4f4f5', padding: '2rem' }}>
@@ -466,6 +479,36 @@ export default function PublicHomePage() {
               options={energyTypesList}
               onChange={setSelectedEnergyTypeId}
             />
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+              <label style={{ fontSize: '0.75rem', color: '#71717a', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                🃏 Tipo de Carta
+              </label>
+              <select
+                value={selectedCardType}
+                onChange={e => setSelectedCardType(e.target.value)}
+                style={{
+                  padding: '0.65rem 2.5rem 0.65rem 1rem',
+                  borderRadius: '8px',
+                  border: '1px solid #3f3f46',
+                  backgroundColor: '#09090b',
+                  color: '#f4f4f5',
+                  fontSize: '0.9rem',
+                  width: '100%',
+                  cursor: 'pointer',
+                  outline: 'none',
+                  appearance: 'none',
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a1a1aa' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: 'right 12px center',
+                }}
+              >
+                <option value="ALL">Todos los Tipos</option>
+                {CARD_TYPE_OPTIONS.map(option => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {/* Active filter pills */}
@@ -492,6 +535,11 @@ export default function PublicHomePage() {
                 <span style={{ fontSize: '0.75rem', padding: '0.2rem 0.6rem', borderRadius: '99px', backgroundColor: '#10b98120', color: '#34d399', border: '1px solid #10b98140', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                   <IconDisplay icon={energyTypesList.find(e => e.id === selectedEnergyTypeId)?.icon} size={14} />
                   {energyTypesList.find(e => e.id === selectedEnergyTypeId)?.name}
+                </span>
+              )}
+              {selectedCardType !== 'ALL' && (
+                <span style={{ fontSize: '0.75rem', padding: '0.2rem 0.6rem', borderRadius: '99px', backgroundColor: '#f43f5e20', color: '#fb7185', border: '1px solid #f43f5e40' }}>
+                  🃏 {CARD_TYPE_OPTIONS.find(option => option.value === selectedCardType)?.label}
                 </span>
               )}
               <button onClick={clearAll} style={{ fontSize: '0.75rem', padding: '0.2rem 0.6rem', borderRadius: '99px', backgroundColor: '#27272a', color: '#a1a1aa', border: '1px solid #3f3f46', cursor: 'pointer' }}>
@@ -544,6 +592,14 @@ export default function PublicHomePage() {
                     <span style={{ fontSize: '0.8rem', color: '#a1a1aa' }}>#{card.number}</span>
                     <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center' }}>
                       {card.energyTypeIcon && <IconDisplay icon={card.energyTypeIcon} size={18} />}
+                      <span style={{
+                        fontSize: '0.7rem', fontWeight: 700,
+                        padding: '0.2rem 0.5rem', borderRadius: '4px',
+                        backgroundColor: '#38bdf820',
+                        color: '#38bdf8',
+                      }}>
+                        {CARD_TYPE_OPTIONS.find(option => option.value === card.cardType)?.label || 'Pokémon'}
+                      </span>
                       <span style={{
                         fontSize: '0.7rem', fontWeight: 700,
                         padding: '0.2rem 0.5rem', borderRadius: '4px',

@@ -28,6 +28,7 @@ export class CardsService {
     if (filters.rarityId) where.rarityId = filters.rarityId;
     if (filters.categoryId) where.categoryId = filters.categoryId;
     if (filters.energyTypeId) where.energyTypeId = filters.energyTypeId;
+    if (filters.cardType) where.cardType = filters.cardType;
     if (filters.status) where.status = filters.status;
 
     const [cards, total] = await Promise.all([
@@ -135,6 +136,7 @@ export class CardsService {
         slug,
         number: dto.number,
         game: dto.game || 'Pokemon TCG',
+        cardType: dto.cardType || 'POKEMON',
         language: dto.language || 'English',
         description: dto.description || `Carta de ${dto.name}`,
         hp: dto.hp || 100,
@@ -191,6 +193,7 @@ export class CardsService {
     const dataToUpdate: any = {};
     if (dto.name) dataToUpdate.name = dto.name;
     if (dto.number) dataToUpdate.number = dto.number;
+    if (dto.cardType !== undefined) dataToUpdate.cardType = dto.cardType;
     if (dto.hp !== undefined) dataToUpdate.hp = dto.hp;
     if (dto.status) dataToUpdate.status = dto.status;
     if (dto.collectionId) dataToUpdate.collectionId = dto.collectionId;

@@ -22,6 +22,7 @@ interface CardItem {
   rarityId?: string;
   energyType?: string;
   energyTypeId?: string;
+  cardType?: string;
   status: 'PUBLISHED' | 'DRAFT' | 'ARCHIVED';
   hp?: number;
   imageUrl?: string;
@@ -53,6 +54,7 @@ export default function CardsAdminPage() {
     collectionId: '',
     rarityId: '',
     energyTypeId: '',
+    cardType: 'POKEMON' as string,
     stock: 10,
     price: 49.99,
     status: 'PUBLISHED' as 'PUBLISHED' | 'DRAFT' | 'ARCHIVED',
@@ -190,6 +192,7 @@ export default function CardsAdminPage() {
             rarityId: c.rarityId || c.rarity?.id,
             energyType: c.energyType?.name || null,
             energyTypeId: c.energyTypeId || null,
+            cardType: c.cardType || 'POKEMON',
             status: c.status || 'PUBLISHED',
             hp: c.hp || 100,
             price: c.products?.[0]?.price ? Number(c.products[0].price) : 49.99,
@@ -279,6 +282,7 @@ export default function CardsAdminPage() {
       collectionId: formData.collectionId || (availableCollections[0]?.id ?? undefined),
       rarityId: formData.rarityId || (availableRarities[0]?.id ?? undefined),
       energyTypeId: formData.energyTypeId || undefined,
+      cardType: formData.cardType || 'POKEMON',
       imageUrl: formData.imageUrl || previewImage || undefined,
     };
 
@@ -308,6 +312,7 @@ export default function CardsAdminPage() {
         collection: selectedCol?.name || 'Base Set',
         collectionId: formData.collectionId,
         rarity: selectedRar?.name || '1-Star Rare',
+        cardType: formData.cardType,
         status: formData.status,
         stock: Number(formData.stock),
         price: Number(formData.price) || 49.99,
@@ -335,6 +340,7 @@ export default function CardsAdminPage() {
       collectionId: card.collectionId || (availableCollections.find((c) => c.name === card.collection)?.id || availableCollections[0]?.id || ''),
       rarityId: resolvedRarityId,
       energyTypeId: card.energyTypeId || '',
+      cardType: card.cardType || 'POKEMON',
       stock: card.stock ?? 10,
       price: card.price || 49.99,
       status: card.status,
@@ -357,6 +363,7 @@ export default function CardsAdminPage() {
       collectionId: formData.collectionId || undefined,
       rarityId: formData.rarityId || undefined,
       energyTypeId: formData.energyTypeId || undefined,
+      cardType: formData.cardType || 'POKEMON',
       imageUrl: formData.imageUrl || previewImage || undefined,
     };
 
@@ -388,6 +395,7 @@ export default function CardsAdminPage() {
               collection: selectedCol?.name || c.collection,
               collectionId: formData.collectionId,
               rarity: selectedRar?.name || c.rarity,
+              cardType: formData.cardType,
               stock: Number(formData.stock),
               price: Number(formData.price),
               status: formData.status,
@@ -437,6 +445,7 @@ export default function CardsAdminPage() {
       collectionId: availableCollections[0]?.id || '',
       rarityId: availableRarities[0]?.id || '',
       energyTypeId: '',
+      cardType: 'POKEMON',
       stock: 10,
       price: 49.99,
       status: 'PUBLISHED',
@@ -455,6 +464,7 @@ export default function CardsAdminPage() {
       collectionId: c.collectionId,
       rarityId: c.rarityId,
       energyTypeId: c.energyTypeId,
+      cardType: c.cardType || 'POKEMON',
       imageFilename: c.imageUrl ? c.imageUrl.split('/').pop() : '',
       price: c.price,
       stock: c.stock,
@@ -517,6 +527,11 @@ export default function CardsAdminPage() {
       energytypeid: 'energyTypeId',
       energytype: 'energyTypeId',
       energiatype: 'energyTypeId',
+      cardtype: 'cardType',
+      tipo: 'cardType',
+      tipodecarta: 'cardType',
+      tipocarta: 'cardType',
+      type: 'cardType',
       imagefilename: 'imageFilename',
       imagefile: 'imageFilename',
       image: 'imageFilename',
@@ -525,6 +540,20 @@ export default function CardsAdminPage() {
       status: 'status',
       description: 'description',
       descripcion: 'description',
+    };
+
+    const normalizeCardTypeValue = (value: any) => {
+      if (value === undefined || value === null || value === '') return undefined;
+      const normalized = String(value).trim().toLowerCase();
+      const aliasMap: Record<string, string> = {
+        pokemon: 'POKEMON',
+        pokémon: 'POKEMON',
+        partidario: 'PARTIDARIO',
+        objeto: 'OBJETO',
+        herramienta: 'HERRAMIENTA',
+        estadio: 'ESTADIO',
+      };
+      return aliasMap[normalized] || undefined;
     };
 
     const imageFiles: File[] = [];
@@ -572,6 +601,7 @@ export default function CardsAdminPage() {
         collectionId: resolveOptionIdFromRow(r, ['collectionId', 'collection'], availableCollections),
         rarityId: resolveOptionIdFromRow(r, ['rarityId', 'rarity'], availableRarities),
         energyTypeId: resolveOptionIdFromRow(r, ['energyTypeId', 'energyType'], availableEnergyTypes),
+        cardType: normalizeCardTypeValue(r.cardType || r.type || r.tipo || r.tipodecarta || r.tipocarta) || 'POKEMON',
         price: r.price !== undefined && r.price !== '' ? Number(r.price) : undefined,
         stock: r.stock !== undefined && r.stock !== '' ? Number(r.stock) : undefined,
         status: r.status || undefined,
@@ -1299,6 +1329,21 @@ export default function CardsAdminPage() {
               />
             </div>
 
+            <div>
+              <label style={labelStyle}>🃏 Tipo de Carta</label>
+              <select
+                value={formData.cardType}
+                onChange={(e) => setFormData({ ...formData, cardType: e.target.value })}
+                style={inputStyle}
+              >
+                <option value="POKEMON">Pokémon</option>
+                <option value="PARTIDARIO">Partidario</option>
+                <option value="OBJETO">Objeto</option>
+                <option value="HERRAMIENTA">Herramienta</option>
+                <option value="ESTADIO">Estadio</option>
+              </select>
+            </div>
+
             <div style={{ display: 'flex', gap: '1rem' }}>
               <div style={{ flex: 1 }}>
                 <label style={labelStyle}>Stock (Unidades Disponibles)</label>
@@ -1420,6 +1465,21 @@ export default function CardsAdminPage() {
                 onChange={(id) => setFormData({ ...formData, energyTypeId: id })}
                 placeholder="— Sin tipo de energía —"
               />
+            </div>
+
+            <div>
+              <label style={labelStyle}>🃏 Tipo de Carta</label>
+              <select
+                value={formData.cardType}
+                onChange={(e) => setFormData({ ...formData, cardType: e.target.value })}
+                style={inputStyle}
+              >
+                <option value="POKEMON">Pokémon</option>
+                <option value="PARTIDARIO">Partidario</option>
+                <option value="OBJETO">Objeto</option>
+                <option value="HERRAMIENTA">Herramienta</option>
+                <option value="ESTADIO">Estadio</option>
+              </select>
             </div>
 
             <div style={{ display: 'flex', gap: '1rem' }}>
