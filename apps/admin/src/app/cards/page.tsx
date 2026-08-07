@@ -11,6 +11,7 @@ const Card3DCanvas = dynamic(
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://trading-cards-pokemon.onrender.com';
 const DEFAULT_PAGE_SIZE = 50;
 const PAGE_SIZE_OPTIONS = [20, 50, 100];
+const NON_POKEMON_CARD_TYPES = ['PARTIDARIO', 'OBJETO', 'HERRAMIENTA', 'ESTADIO'];
 
 interface CardItem {
   id: string;
@@ -281,7 +282,7 @@ export default function CardsAdminPage() {
       status: formData.status,
       collectionId: formData.collectionId || (availableCollections[0]?.id ?? undefined),
       rarityId: formData.rarityId || (availableRarities[0]?.id ?? undefined),
-      energyTypeId: formData.energyTypeId || undefined,
+      energyTypeId: formData.cardType === 'POKEMON' ? (formData.energyTypeId || undefined) : undefined,
       cardType: formData.cardType || 'POKEMON',
       imageUrl: formData.imageUrl || previewImage || undefined,
     };
@@ -362,7 +363,7 @@ export default function CardsAdminPage() {
       status: formData.status,
       collectionId: formData.collectionId || undefined,
       rarityId: formData.rarityId || undefined,
-      energyTypeId: formData.energyTypeId || undefined,
+      energyTypeId: formData.cardType === 'POKEMON' ? (formData.energyTypeId || undefined) : null,
       cardType: formData.cardType || 'POKEMON',
       imageUrl: formData.imageUrl || previewImage || undefined,
     };
@@ -463,7 +464,7 @@ export default function CardsAdminPage() {
       number: c.number,
       collectionId: c.collectionId,
       rarityId: c.rarityId,
-      energyTypeId: c.energyTypeId,
+      energyTypeId: c.cardType === 'POKEMON' ? c.energyTypeId : '',
       cardType: c.cardType || 'POKEMON',
       imageFilename: c.imageUrl ? c.imageUrl.split('/').pop() : '',
       price: c.price,
@@ -607,6 +608,26 @@ export default function CardsAdminPage() {
         status: r.status || undefined,
         description: r.description || undefined,
       };
+
+      const rawCardType = r.cardType || r.type || r.tipo || r.tipodecarta || r.tipocarta;
+      const normalizedCardType = normalizeCardTypeValue(rawCardType);
+      const hasEnergyValue = r.energyTypeId !== undefined && r.energyTypeId !== null && String(r.energyTypeId).trim() !== '';
+      if (rawCardType !== undefined && rawCardType !== null && String(rawCardType).trim() !== '' && !normalizedCardType) {
+        failed += 1;
+        errors.push({ rowIndex: rowIndex + 1, row: r, error: 'Invalid cardType. Use POKEMON, PARTIDARIO, OBJETO, HERRAMIENTA or ESTADIO.' });
+        continue;
+      }
+      if (payload.cardType !== 'POKEMON' && hasEnergyValue) {
+        failed += 1;
+        errors.push({ rowIndex: rowIndex + 1, row: r, error: 'Only POKEMON cards can have an energy type; leave energyTypeId blank.' });
+        continue;
+      }
+      if (payload.cardType === 'POKEMON' && hasEnergyValue && !payload.energyTypeId) {
+        failed += 1;
+        errors.push({ rowIndex: rowIndex + 1, row: r, error: 'The energyTypeId value could not be resolved.' });
+        continue;
+      }
+      if (payload.cardType !== 'POKEMON') payload.energyTypeId = undefined;
 
       if (!payload.collectionId && r.collectionId) {
         console.warn('Could not resolve collection:', r.collectionId);
@@ -1326,6 +1347,7 @@ export default function CardsAdminPage() {
                 options={availableEnergyTypes.map(et => ({ id: et.id, name: et.name, icon: et.icon || null, color: et.color || null }))}
                 onChange={(id) => setFormData({ ...formData, energyTypeId: id })}
                 placeholder="— Sin tipo de energía —"
+                disabled={NON_POKEMON_CARD_TYPES.includes(formData.cardType)}
               />
             </div>
 
@@ -1333,7 +1355,7 @@ export default function CardsAdminPage() {
               <label style={labelStyle}>🃏 Tipo de Carta</label>
               <select
                 value={formData.cardType}
-                onChange={(e) => setFormData({ ...formData, cardType: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, cardType: e.target.value, energyTypeId: e.target.value === 'POKEMON' ? formData.energyTypeId : '' })}
                 style={inputStyle}
               >
                 <option value="POKEMON">Pokémon</option>
@@ -1464,6 +1486,7 @@ export default function CardsAdminPage() {
                 options={availableEnergyTypes.map(et => ({ id: et.id, name: et.name, icon: et.icon || null, color: et.color || null }))}
                 onChange={(id) => setFormData({ ...formData, energyTypeId: id })}
                 placeholder="— Sin tipo de energía —"
+                disabled={NON_POKEMON_CARD_TYPES.includes(formData.cardType)}
               />
             </div>
 
@@ -1471,7 +1494,7 @@ export default function CardsAdminPage() {
               <label style={labelStyle}>🃏 Tipo de Carta</label>
               <select
                 value={formData.cardType}
-                onChange={(e) => setFormData({ ...formData, cardType: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, cardType: e.target.value, energyTypeId: e.target.value === 'POKEMON' ? formData.energyTypeId : '' })}
                 style={inputStyle}
               >
                 <option value="POKEMON">Pokémon</option>
@@ -1676,12 +1699,13 @@ function IconRow({ icon, size = 18 }: { icon?: string | null; size?: number }) {
 interface AdminIconSelectOption { id: string; name: string; icon?: string | null; color?: string | null; }
 
 function AdminIconSelect({
-  value, options, onChange, placeholder, style
+  value, options, onChange, placeholder, disabled = false, style
 }: {
   value: string;
   options: AdminIconSelectOption[];
   onChange: (id: string) => void;
   placeholder?: string;
+  disabled?: boolean;
   style?: React.CSSProperties;
 }) {
   const [open, setOpen] = useState(false);
@@ -1699,14 +1723,14 @@ function AdminIconSelect({
   const baseStyle: React.CSSProperties = {
     width: '100%', padding: '0.6rem 2rem 0.6rem 0.75rem', borderRadius: '8px',
     border: '1px solid #3f3f46', backgroundColor: '#09090b', color: '#f4f4f5',
-    fontSize: '0.88rem', cursor: 'pointer', outline: 'none', textAlign: 'left',
+    fontSize: '0.88rem', outline: 'none', textAlign: 'left',
     display: 'flex', alignItems: 'center', gap: '0.5rem', position: 'relative',
-    boxSizing: 'border-box', ...style,
+    boxSizing: 'border-box', opacity: disabled ? 0.5 : 1, cursor: disabled ? 'not-allowed' : 'pointer', ...style,
   };
 
   return (
     <div ref={ref} style={{ position: 'relative', width: '100%' }}>
-      <button type="button" onClick={() => setOpen(o => !o)} style={baseStyle}>
+      <button type="button" disabled={disabled} onClick={() => setOpen(o => !o)} style={baseStyle}>
         {selected ? (
           <><IconRow icon={selected.icon} size={18} /><span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selected.name}</span></>
         ) : (

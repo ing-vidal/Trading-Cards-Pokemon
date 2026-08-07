@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCardDto } from './dto/create-card.dto';
 import { UpdateCardDto } from './dto/update-card.dto';
@@ -91,6 +91,10 @@ export class CardsService {
   }
 
   async create(dto: CreateCardDto) {
+    if (dto.cardType !== 'POKEMON' && dto.energyTypeId) {
+      throw new BadRequestException('Solo las cartas Pokémon pueden tener tipo de energía');
+    }
+
     const baseSlug = (dto.slug || dto.name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
     const slug = `${baseSlug}-${Date.now().toString().slice(-4)}`;
 
@@ -188,7 +192,12 @@ export class CardsService {
   }
 
   async update(id: string, dto: any) {
-    await this.findOne(id);
+    const currentCard = await this.findOne(id);
+    const nextCardType = dto.cardType ?? currentCard.cardType;
+
+    if (nextCardType !== 'POKEMON' && dto.energyTypeId) {
+      throw new BadRequestException('Solo las cartas Pokémon pueden tener tipo de energía');
+    }
 
     const dataToUpdate: any = {};
     if (dto.name) dataToUpdate.name = dto.name;
@@ -198,7 +207,9 @@ export class CardsService {
     if (dto.status) dataToUpdate.status = dto.status;
     if (dto.collectionId) dataToUpdate.collectionId = dto.collectionId;
     if (dto.rarityId) dataToUpdate.rarityId = dto.rarityId;
-    if (dto.energyTypeId !== undefined) dataToUpdate.energyTypeId = dto.energyTypeId || null;
+    if (dto.energyTypeId !== undefined || (dto.cardType !== undefined && nextCardType !== 'POKEMON')) {
+      dataToUpdate.energyTypeId = nextCardType === 'POKEMON' ? (dto.energyTypeId || null) : null;
+    }
     if (dto.description) dataToUpdate.description = dto.description;
 
     const card = await this.prisma.card.update({
