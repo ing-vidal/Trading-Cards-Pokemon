@@ -30,7 +30,7 @@ export default function CheckoutPage() {
 
   if (orderComplete) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#09090b', color: '#f4f4f5', padding: '4rem 2rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ minHeight: '100vh', backgroundColor: '#09090b', color: '#f4f4f5', padding: 'clamp(2rem, 8vw, 4rem) clamp(1rem, 4vw, 2rem)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '16px', padding: '3rem', maxWidth: '520px', width: '100%', textAlign: 'center' }}>
           <div style={{ width: '64px', height: '64px', borderRadius: '50%', backgroundColor: '#064e3b', color: '#34d399', fontSize: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem auto' }}>
             ✓
@@ -63,8 +63,8 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#09090b', color: '#f4f4f5', padding: '2rem' }}>
-      <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#09090b', color: '#f4f4f5', padding: 'clamp(1rem, 4vw, 2rem)' }}>
+      <div className="checkout-shell" style={{ maxWidth: '1100px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #27272a', paddingBottom: '1.5rem' }}>
           <div>
@@ -79,7 +79,7 @@ export default function CheckoutPage() {
         </div>
 
         {/* Checkout Form & Order Summary */}
-        <form onSubmit={handleCheckout} style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '2.5rem' }}>
+        <form className="checkout-grid" onSubmit={handleCheckout} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.5fr) minmax(280px, 1fr)', gap: '2.5rem' }}>
           {/* Shipping & Payment Info */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             {/* Address Box */}
@@ -168,6 +168,14 @@ export default function CheckoutPage() {
           </div>
         </form>
       </div>
+      <style jsx>{`
+        @media (max-width: 760px) {
+          .checkout-grid { grid-template-columns: 1fr !important; gap: 1.25rem !important; }
+        }
+        @media (max-width: 520px) {
+          .checkout-shell { gap: 1.25rem !important; }
+        }
+      `}</style>
     </div>
   );
 }

@@ -32,8 +32,8 @@ export default function MyCollectionPage() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#09090b', color: '#f4f4f5', padding: '2rem' }}>
-      <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#09090b', color: '#f4f4f5', padding: 'clamp(1rem, 4vw, 2rem)' }}>
+      <div className="collection-shell" style={{ maxWidth: '1100px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #27272a', paddingBottom: '1.5rem' }}>
           <div>
@@ -48,7 +48,7 @@ export default function MyCollectionPage() {
         </div>
 
         {/* Stats Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.25rem' }}>
+        <div className="collection-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '1.25rem' }}>
           <div style={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '12px', padding: '1.25rem' }}>
             <span style={{ fontSize: '0.85rem', color: '#a1a1aa' }}>Total Cartas Guardadas</span>
             <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#38bdf8', marginTop: '0.25rem' }}>{totalCards} un.</div>
@@ -70,7 +70,7 @@ export default function MyCollectionPage() {
         </div>
 
         {/* Collection Table */}
-        <div style={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '12px', overflow: 'hidden' }}>
+        <div className="collection-table-wrap" style={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '12px', overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
             <thead>
               <tr style={{ backgroundColor: '#27272a', color: '#a1a1aa', borderBottom: '1px solid #3f3f46' }}>
@@ -107,6 +107,14 @@ export default function MyCollectionPage() {
           </table>
         </div>
       </div>
+      <style jsx>{`
+        @media (max-width: 760px) {
+          .collection-stats { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 520px) {
+          .collection-shell { gap: 1.25rem !important; }
+        }
+      `}</style>
     </div>
   );
 }

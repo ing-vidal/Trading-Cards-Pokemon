@@ -33,8 +33,8 @@ export default function UserOrdersPage() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#09090b', color: '#f4f4f5', padding: '2rem' }}>
-      <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#09090b', color: '#f4f4f5', padding: 'clamp(1rem, 4vw, 2rem)' }}>
+      <div className="orders-shell" style={{ maxWidth: '1100px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #27272a', paddingBottom: '1.5rem' }}>
           <div>
@@ -53,14 +53,15 @@ export default function UserOrdersPage() {
           {ORDERS_HISTORY.map((order) => {
             const badge = getStatusBadge(order.status);
             return (
-              <div key={order.id} style={{
+              <div className="order-row" key={order.id} style={{
                 backgroundColor: '#18181b',
                 border: '1px solid #27272a',
                 borderRadius: '12px',
                 padding: '1.5rem',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'space-between'
+                justifyContent: 'space-between',
+                gap: '1rem'
               }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -91,6 +92,12 @@ export default function UserOrdersPage() {
           })}
         </div>
       </div>
+      <style jsx>{`
+        @media (max-width: 620px) {
+          .order-row { align-items: flex-start !important; flex-direction: column; }
+          .order-row > div:last-child { text-align: left !important; width: 100%; }
+        }
+      `}</style>
     </div>
   );
 }

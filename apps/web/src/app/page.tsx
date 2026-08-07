@@ -358,7 +358,7 @@ export default function PublicHomePage() {
   const hasActiveFilters = search || selectedCollection !== 'ALL' || selectedRarityId !== 'ALL' || selectedEnergyTypeId !== 'ALL' || selectedCardType !== 'ALL';
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#09090b', color: '#f4f4f5', padding: '2rem' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#09090b', color: '#f4f4f5', padding: 'clamp(1rem, 4vw, 2rem)' }}>
       {/* Header */}
       <header style={{
         maxWidth: '1200px',

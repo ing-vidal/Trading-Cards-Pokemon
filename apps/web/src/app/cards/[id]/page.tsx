@@ -382,12 +382,12 @@ export default function CardDetailPage({ params }: PageProps) {
               border: '1px solid #27272a',
               borderRadius: '14px',
               padding: '1.25rem',
-              display: 'flex',
-              alignItems: 'flex-start',
+              display: 'grid',
+              gridTemplateColumns: 'minmax(170px, 0.8fr) minmax(0, 1.6fr)',
+              alignItems: 'start',
               gap: '1.25rem',
-              flexDirection: 'column'
             }}>
-              <div>
+              <div className="expansion-copy">
                 <span style={{ fontSize: '0.75rem', color: '#a1a1aa', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   Imagen de la Expansión
                 </span>
@@ -400,7 +400,7 @@ export default function CardDetailPage({ params }: PageProps) {
               </div>
 
               {card.collectionImages && card.collectionImages.length > 0 ? (
-                <div className="expansion-gallery" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
+                <div className="expansion-gallery" style={{ display: 'flex', gap: '1rem', flexWrap: 'nowrap', alignItems: 'flex-start', minWidth: 0 }}>
                   {card.collectionImages.slice(0, 3).map((image: string, index: number) => (
                     <img
                       key={`${image}-${index}`}
@@ -408,7 +408,7 @@ export default function CardDetailPage({ params }: PageProps) {
                       alt={`Expansión ${index + 1} de ${card.collection}`}
                       className="expansion-image"
                       style={{
-                        width: 'min(100%, 220px)',
+                        width: 'min(28%, 180px)',
                         height: 'auto',
                         maxHeight: '240px',
                         objectFit: 'contain',
@@ -498,11 +498,15 @@ export default function CardDetailPage({ params }: PageProps) {
 
           .expansion-panel {
             padding: 1rem !important;
+            grid-template-columns: 1fr !important;
+            gap: 1rem !important;
           }
 
           .expansion-gallery {
             width: 100%;
             justify-content: center;
+            flex-direction: column;
+            align-items: center !important;
           }
 
           .expansion-image {
@@ -513,6 +517,12 @@ export default function CardDetailPage({ params }: PageProps) {
           .price-row {
             align-items: flex-start !important;
             flex-direction: column;
+          }
+        }
+
+        @media (min-width: 521px) and (max-width: 820px) {
+          .expansion-gallery {
+            flex-wrap: wrap !important;
           }
         }
       `}</style>
