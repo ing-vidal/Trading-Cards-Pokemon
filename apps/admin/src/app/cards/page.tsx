@@ -101,7 +101,7 @@ export default function CardsAdminPage() {
   const DEFAULT_RARITIES = [
     { id: 'rarity-1',  name: 'Common',           color: '#94a3b8', shader: 'basic-foil' },
     { id: 'rarity-2',  name: 'Uncommon',          color: '#60a5fa', shader: 'basic-foil' },
-    { id: 'rarity-3',  name: 'Rare',              color: '#34d399', shader: 'basic-foil' },
+    { id: 'rarity-3',  name: 'Rare',              color: '#34d399', shader: 'rare-foil' },
     { id: 'rarity-4',  name: 'Double Rare',       color: '#a78bfa', shader: 'basic-foil' },
     { id: 'rarity-5',  name: '1-Star Rare',       color: '#fbbf24', shader: 'basic-foil' },
     { id: 'rarity-6',  name: '2-Star Rare',       color: '#f59e0b', shader: 'rainbow-hyper' },
@@ -159,6 +159,7 @@ export default function CardsAdminPage() {
             let shader = dbShader || 'basic-foil';
             if (isPlaceholder || level) {
               if (level === 'COMMON' || level === 'UNCOMMON') shader = 'basic-foil';
+              else if (level === 'RARE')          shader = 'rare-foil';
               else if (level === 'CROWN')            shader = 'gold-relic';
               else if (level === 'IMMERSIVE' || level === 'DOUBLE_IMMERSIVE') shader = 'glass-shatter';
               else if (level === 'STAR_2' || level === 'STAR_3') shader = 'rainbow-hyper';
@@ -1786,6 +1787,7 @@ function RarityPickerWithPreview({ rarities, selectedId, previewImageUrl, onSele
   // Label icons per shader
   const shaderIcon: Record<string, string> = {
     'basic-foil':       '✨',
+    'rare-foil':        '🌈',
     'rainbow-hyper':    '🌈',
     'gold-relic':       '🥇',
     'glass-shatter':    '💎',
@@ -1867,6 +1869,7 @@ function RarityPickerWithPreview({ rarities, selectedId, previewImageUrl, onSele
               {shader === 'promo-glow'      && '⚡ Aura neón pulsante con arcos de energía'}
               {shader === 'special-art'     && '🌌 Nebulosa cósmica con campo de estrellas animado'}
               {shader === 'trainer-gallery' && '🎨 Brillo plateado nacarado con shimmer artístico'}
+              {shader === 'rare-foil'        && '🌈 Holo prismático con bandas diagonales y destellos'}
               {shader === 'basic-foil'      && '✨ Holo clásico con fresnel suave y shimmer lineal'}
             </div>
             <div style={{ fontSize: '0.7rem', color: '#52525b', marginTop: '0.3rem' }}>
