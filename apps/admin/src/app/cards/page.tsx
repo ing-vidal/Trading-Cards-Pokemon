@@ -178,7 +178,7 @@ export default function CardsAdminPage() {
   // Fetch cards from API
   const fetchCardsFromApi = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/cards`);
+      const res = await fetch(`${API_BASE_URL}/api/cards?limit=1000`);
       if (res.ok) {
         const json = await res.json();
         if (json.data && Array.isArray(json.data)) {
