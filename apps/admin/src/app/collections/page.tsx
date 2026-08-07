@@ -209,6 +209,16 @@ export default function CollectionsAdminPage() {
         persistCollections(next);
         return next;
       });
+    }
+
+    setShowCreateModal(false);
+    resetForm();
+    setIsSubmitting(false);
+  };
+
+  const handleEditOpen = (col: CollectionItem) => {
+    setEditingCol(col);
+    setFormData({
       name: col.name,
       code: col.code,
       slug: col.slug,
