@@ -281,10 +281,10 @@ export default function CardDetailPage({ params }: PageProps) {
   const expansionImage = card.expansionImage || card.collectionLogo || null;
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#09090b', color: '#f4f4f5', padding: '2rem' }}>
-      <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+    <div className="detail-page" style={{ minHeight: '100vh', backgroundColor: '#09090b', color: '#f4f4f5', padding: 'clamp(1rem, 4vw, 2rem)' }}>
+      <div className="detail-shell" style={{ maxWidth: '1100px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 'clamp(1.25rem, 3vw, 2rem)' }}>
         {/* Header Breadcrumb */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', color: '#a1a1aa' }}>
+        <div className="detail-breadcrumb" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', color: '#a1a1aa' }}>
           <Link href="/catalog" style={{ color: '#38bdf8', textDecoration: 'none' }}>Catálogo</Link>
           <span>/</span>
           <span>{card.collection}</span>
@@ -293,11 +293,12 @@ export default function CardDetailPage({ params }: PageProps) {
         </div>
 
         {/* Main Grid: Unified 3D Holo Card Left, Technical Stats Right */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3rem', alignItems: 'start' }}>
+        <div className="detail-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 'clamp(1.5rem, 5vw, 3rem)', alignItems: 'start' }}>
           {/* 3D Card Canvas Panel */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div style={{
-              height: '520px',
+          <div className="holo-column" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', minWidth: 0 }}>
+            <div className="holo-panel" style={{
+              height: 'min(520px, 68vw)',
+              minHeight: '360px',
               backgroundColor: shaderPresetId === 'gold-relic' ? '#0a0800' : '#18181b',
               border: shaderPresetId === 'gold-relic'
                 ? '1px solid #ffd06055'
@@ -319,7 +320,7 @@ export default function CardDetailPage({ params }: PageProps) {
                   imageUrl={card.imageUrl}
                   intensity={0.9}
                   width="100%"
-                  height="520px"
+                  height="100%"
                   showEditor={false}
                 />
               ) : (
@@ -329,12 +330,12 @@ export default function CardDetailPage({ params }: PageProps) {
                   imageUrl={card.imageUrl}
                   presetId={shaderPresetId}
                   intensity={0.85}
-                  height="520px"
+                  height="100%"
                 />
               )}
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem', color: '#71717a', padding: '0 0.5rem' }}>
+            <div className="shader-caption" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', fontSize: '0.8rem', color: '#71717a', padding: '0 0.5rem' }}>
               <span>
                 {shaderPresetId === 'gold-relic'
                   ? '🥇 Mueve el mouse · Rota · Abre ⚙️ para ajustar parámetros del shader'
@@ -351,7 +352,7 @@ export default function CardDetailPage({ params }: PageProps) {
 
 
           {/* Technical Info Panel */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          <div className="tech-column" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', minWidth: 0 }}>
             <div>
               <span style={{
                 display: 'inline-flex',
@@ -365,8 +366,8 @@ export default function CardDetailPage({ params }: PageProps) {
               }}>
                 ✨ {card.rarity}
               </span>
-              <h1 style={{ margin: 0, fontSize: '2.5rem', fontWeight: 800 }}>{card.name}</h1>
-              <div style={{ fontSize: '1rem', color: '#38bdf8', marginTop: '0.25rem' }}>
+              <h1 className="card-title" style={{ margin: 0, fontSize: 'clamp(1.8rem, 4vw, 2.5rem)', fontWeight: 800 }}>{card.name}</h1>
+              <div className="card-subtitle" style={{ fontSize: '1rem', color: '#38bdf8', marginTop: '0.25rem' }}>
                 {card.collection} • #{card.number}
               </div>
             </div>
@@ -376,7 +377,7 @@ export default function CardDetailPage({ params }: PageProps) {
             </p>
 
             {/* Expansion Image */}
-            <div style={{
+            <div className="expansion-panel" style={{
               backgroundColor: '#18181b',
               border: '1px solid #27272a',
               borderRadius: '14px',
@@ -399,16 +400,18 @@ export default function CardDetailPage({ params }: PageProps) {
               </div>
 
               {card.collectionImages && card.collectionImages.length > 0 ? (
-                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                <div className="expansion-gallery" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
                   {card.collectionImages.slice(0, 3).map((image: string, index: number) => (
                     <img
                       key={`${image}-${index}`}
                       src={image}
                       alt={`Expansión ${index + 1} de ${card.collection}`}
+                      className="expansion-image"
                       style={{
-                        width: '110px',
-                        height: '150px',
-                        objectFit: 'cover',
+                        width: 'min(100%, 220px)',
+                        height: 'auto',
+                        maxHeight: '240px',
+                        objectFit: 'contain',
                         borderRadius: '10px',
                         border: '1px solid #38bdf850',
                         boxShadow: '0 8px 20px rgba(0,0,0,0.5)'
@@ -418,8 +421,8 @@ export default function CardDetailPage({ params }: PageProps) {
                 </div>
               ) : (
                 <div style={{
-                  width: '110px',
-                  height: '150px',
+                  width: 'min(100%, 220px)',
+                  aspectRatio: '11 / 15',
                   backgroundColor: '#09090b',
                   border: '1px dashed #38bdf850',
                   borderRadius: '10px',
@@ -439,7 +442,7 @@ export default function CardDetailPage({ params }: PageProps) {
               <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem', color: '#f4f4f5' }}>Disponibilidad en Mercado</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 {card.prices.map((p: any, idx: number) => (
-                  <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.6rem 0.8rem', backgroundColor: '#09090b', borderRadius: '6px' }}>
+                  <div className="price-row" key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', padding: '0.6rem 0.8rem', backgroundColor: '#09090b', borderRadius: '6px' }}>
                     <div>
                       <div style={{ fontSize: '0.9rem', fontWeight: 600, color: '#f4f4f5' }}>{p.condition}</div>
                       <div style={{ fontSize: '0.75rem', color: '#a1a1aa' }}>Stock: {p.stock} un.</div>
@@ -457,6 +460,62 @@ export default function CardDetailPage({ params }: PageProps) {
           </div>
         </div>
       </div>
+      <style jsx>{`
+        .expansion-image {
+          display: block;
+          border-radius: 10px;
+          border: 1px solid #38bdf850;
+          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        @media (max-width: 820px) {
+          .detail-grid {
+            grid-template-columns: 1fr !important;
+          }
+
+          .holo-panel {
+            height: min(560px, 105vw) !important;
+          }
+        }
+
+        @media (max-width: 520px) {
+          .detail-breadcrumb {
+            flex-wrap: wrap;
+            font-size: 0.8rem !important;
+          }
+
+          .holo-panel {
+            min-height: 300px !important;
+            height: 112vw !important;
+            max-height: 500px;
+          }
+
+          .shader-caption {
+            align-items: flex-start !important;
+            flex-direction: column;
+            font-size: 0.72rem !important;
+          }
+
+          .expansion-panel {
+            padding: 1rem !important;
+          }
+
+          .expansion-gallery {
+            width: 100%;
+            justify-content: center;
+          }
+
+          .expansion-image {
+            width: 100% !important;
+            max-height: none !important;
+          }
+
+          .price-row {
+            align-items: flex-start !important;
+            flex-direction: column;
+          }
+        }
+      `}</style>
     </div>
   );
 }
