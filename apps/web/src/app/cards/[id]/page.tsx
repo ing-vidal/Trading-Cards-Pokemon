@@ -96,8 +96,19 @@ export default function CardDetailPage({ params }: PageProps) {
             const presetId = mapLevelToPreset(rarityLevel)
               || (!isPlaceholder ? shaderFromDb : '')
               || mapRarityToPreset(rarityName);
-            const collectionImages = normalizeCollectionImages(data.collection?.images || data.collection?.logo || data.collection?.image || data.collection?.imageUrl || data.collection?.cover);
-            const primaryCollectionImage = collectionImages[0] || data.collection?.logo || data.collection?.image || data.collection?.imageUrl || data.collection?.cover || null;
+            const collectionImages = normalizeCollectionImages(
+              data.collection?.images
+              || data.collection?.logo
+              || data.collection?.image
+              || data.collection?.imageUrl
+              || data.collection?.cover
+            );
+            const primaryCollectionImage = collectionImages[0]
+              || data.collection?.logo
+              || data.collection?.image
+              || data.collection?.imageUrl
+              || data.collection?.cover
+              || null;
             setCard({
               id: data.id,
               name: data.name,
@@ -139,8 +150,22 @@ export default function CardDetailPage({ params }: PageProps) {
           const found = parsed.find((c: any) => c.id === cardId || c.name.toLowerCase() === cardId.toLowerCase());
           if (found) {
             const rarityName = found.rarity || '1-Star Rare';
-            const collectionImages = normalizeCollectionImages(found.images || found.collectionImages || found.collectionLogo || found.logo || found.image || found.imageUrl || found.cover);
-            const primaryCollectionImage = collectionImages[0] || found.collectionLogo || found.logo || found.image || found.imageUrl || found.cover || null;
+            const collectionImages = normalizeCollectionImages(
+              found.images
+              || found.collectionImages
+              || found.collectionLogo
+              || found.logo
+              || found.image
+              || found.imageUrl
+              || found.cover
+            );
+            const primaryCollectionImage = collectionImages[0]
+              || found.collectionLogo
+              || found.logo
+              || found.image
+              || found.imageUrl
+              || found.cover
+              || null;
             setCard({
               id: found.id,
               name: found.name,
@@ -358,7 +383,8 @@ export default function CardDetailPage({ params }: PageProps) {
               padding: '1.25rem',
               display: 'flex',
               alignItems: 'center',
-              gap: '1.25rem'
+              gap: '1.25rem',
+              flexWrap: 'wrap'
             }}>
               {expansionImage ? (
                 <img
@@ -390,7 +416,7 @@ export default function CardDetailPage({ params }: PageProps) {
                 </div>
               )}
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', minWidth: '220px', flex: 1 }}>
                 <span style={{ fontSize: '0.75rem', color: '#a1a1aa', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   Imagen de la Expansión
                 </span>
@@ -400,6 +426,24 @@ export default function CardDetailPage({ params }: PageProps) {
                 <span style={{ fontSize: '0.82rem', color: '#38bdf8', fontWeight: 600 }}>
                   Se muestra en la vista de detalle de la carta
                 </span>
+                {card.collectionImages && card.collectionImages.length > 1 ? (
+                  <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.3rem', flexWrap: 'wrap' }}>
+                    {card.collectionImages.slice(0, 3).map((image: string, index: number) => (
+                      <img
+                        key={`${image}-${index}`}
+                        src={image}
+                        alt={`Galería ${index + 1} de ${card.collection}`}
+                        style={{
+                          width: '56px',
+                          height: '76px',
+                          objectFit: 'cover',
+                          borderRadius: '8px',
+                          border: '1px solid #38bdf850'
+                        }}
+                      />
+                    ))}
+                  </div>
+                ) : null}
               </div>
             </div>
 
