@@ -382,23 +382,40 @@ export default function CardDetailPage({ params }: PageProps) {
               borderRadius: '14px',
               padding: '1.25rem',
               display: 'flex',
-              alignItems: 'center',
+              alignItems: 'flex-start',
               gap: '1.25rem',
-              flexWrap: 'wrap'
+              flexDirection: 'column'
             }}>
-              {expansionImage ? (
-                <img
-                  src={expansionImage}
-                  alt={`Imagen de la expansión ${card.collection}`}
-                  style={{
-                    width: '110px',
-                    height: '150px',
-                    objectFit: 'cover',
-                    borderRadius: '10px',
-                    border: '1px solid #38bdf850',
-                    boxShadow: '0 8px 20px rgba(0,0,0,0.5)'
-                  }}
-                />
+              <div>
+                <span style={{ fontSize: '0.75rem', color: '#a1a1aa', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Imagen de la Expansión
+                </span>
+                <h3 style={{ margin: '0.3rem 0 0 0', fontSize: '1.2rem', color: '#f4f4f5', fontWeight: 700 }}>
+                  {card.collection}
+                </h3>
+                <span style={{ fontSize: '0.82rem', color: '#38bdf8', fontWeight: 600 }}>
+                  Se muestra en la vista de detalle de la carta
+                </span>
+              </div>
+
+              {card.collectionImages && card.collectionImages.length > 0 ? (
+                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                  {card.collectionImages.slice(0, 3).map((image: string, index: number) => (
+                    <img
+                      key={`${image}-${index}`}
+                      src={image}
+                      alt={`Expansión ${index + 1} de ${card.collection}`}
+                      style={{
+                        width: '110px',
+                        height: '150px',
+                        objectFit: 'cover',
+                        borderRadius: '10px',
+                        border: '1px solid #38bdf850',
+                        boxShadow: '0 8px 20px rgba(0,0,0,0.5)'
+                      }}
+                    />
+                  ))}
+                </div>
               ) : (
                 <div style={{
                   width: '110px',
@@ -415,36 +432,6 @@ export default function CardDetailPage({ params }: PageProps) {
                   📦
                 </div>
               )}
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', minWidth: '220px', flex: 1 }}>
-                <span style={{ fontSize: '0.75rem', color: '#a1a1aa', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  Imagen de la Expansión
-                </span>
-                <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#f4f4f5', fontWeight: 700 }}>
-                  {card.collection}
-                </h3>
-                <span style={{ fontSize: '0.82rem', color: '#38bdf8', fontWeight: 600 }}>
-                  Se muestra en la vista de detalle de la carta
-                </span>
-                {card.collectionImages && card.collectionImages.length > 1 ? (
-                  <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.3rem', flexWrap: 'wrap' }}>
-                    {card.collectionImages.slice(0, 3).map((image: string, index: number) => (
-                      <img
-                        key={`${image}-${index}`}
-                        src={image}
-                        alt={`Galería ${index + 1} de ${card.collection}`}
-                        style={{
-                          width: '56px',
-                          height: '76px',
-                          objectFit: 'cover',
-                          borderRadius: '8px',
-                          border: '1px solid #38bdf850'
-                        }}
-                      />
-                    ))}
-                  </div>
-                ) : null}
-              </div>
             </div>
 
             {/* Price & Marketplace Breakdown */}
