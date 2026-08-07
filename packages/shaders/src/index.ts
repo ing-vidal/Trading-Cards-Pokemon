@@ -144,6 +144,76 @@ export const RARE_FOIL_PRESET: ShaderPreset = {
   },
 };
 
+// ─── DOUBLE RARE FOIL ───────────────────────────────────────────────────────
+export const DOUBLE_RARE_FOIL_PRESET: ShaderPreset = {
+  id: 'double-rare-foil',
+  name: 'Double Rare Dynamic Foil',
+  description: 'Holofoil de alta intensidad con franjas diagonales amplias, reflejo angular y destellos densos.',
+  vertexShader: `
+    varying vec2 vUv;
+    varying vec3 vNormal;
+    varying vec3 vViewPosition;
+
+    void main() {
+      vUv = uv;
+      vNormal = normalize(normalMatrix * normal);
+      vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+      vViewPosition = -mvPosition.xyz;
+      gl_Position = projectionMatrix * mvPosition;
+    }
+  `,
+  fragmentShader: `
+    uniform sampler2D tDiffuse;
+    uniform float uTime;
+    uniform float uIntensity;
+    uniform vec2 uMousePos;
+    varying vec2 vUv;
+    varying vec3 vNormal;
+    varying vec3 vViewPosition;
+
+    float hash(vec2 p) {
+      return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+    }
+
+    vec3 foilColor(float value) {
+      return 0.5 + 0.5 * cos(6.28318 * (value + vec3(0.02, 0.35, 0.68)));
+    }
+
+    void main() {
+      vec4 baseColor = texture2D(tDiffuse, vUv);
+      vec3 viewDir = normalize(vViewPosition);
+      float facing = max(dot(viewDir, vNormal), 0.0);
+      float fresnel = pow(1.0 - facing, 1.45);
+
+      float diagonal = dot(vUv - 0.5, vec2(0.78, 0.62)) + uTime * 0.16;
+      float broadBand = exp(-pow(sin(diagonal * 3.14159) * 1.45, 2.0));
+      float innerBand = pow(sin(diagonal * 22.0) * 0.5 + 0.5, 4.0);
+      vec3 foil = foilColor(diagonal * 0.42 + fresnel * 0.3);
+
+      float crossBand = pow(sin(dot(vUv - 0.5, vec2(-0.58, 0.96)) * 16.0 - uTime * 0.1) * 0.5 + 0.5, 6.0);
+      float specular = pow(max(dot(vNormal, normalize(viewDir + vec3(-0.35, 0.55, 1.0))), 0.0), 28.0);
+
+      vec2 sparkleGrid = floor(vUv * vec2(52.0, 70.0));
+      float randomSpark = hash(sparkleGrid);
+      float sparkle = step(0.978, randomSpark) * pow(facing, 2.5);
+      sparkle *= 0.65 + 0.35 * sin(uTime * 3.5 + randomSpark * 16.0);
+      float mouseHighlight = exp(-18.0 * distance(vUv, uMousePos * 0.18 + 0.5));
+
+      vec3 finalColor = baseColor.rgb;
+      finalColor = mix(finalColor, finalColor * (0.42 + foil * 1.18), (0.38 + fresnel * 0.62) * uIntensity);
+      finalColor += foil * (broadBand * 0.62 + innerBand * 0.26 + crossBand * 0.18) * uIntensity;
+      finalColor += vec3(1.0, 0.98, 0.9) * (specular * 0.58 + sparkle * 0.72 + mouseHighlight * 0.22) * uIntensity;
+
+      gl_FragColor = vec4(finalColor, baseColor.a);
+    }
+  `,
+  uniformsDefaults: {
+    uTime: 0,
+    uIntensity: 0.9,
+    uMousePos: [0, 0],
+  },
+};
+
 // ─── RAINBOW HYPER ──────────────────────────────────────────────────────────
 export const RAINBOW_HYPER_PRESET: ShaderPreset = {
   id: 'rainbow-hyper',
@@ -716,6 +786,7 @@ export const TRAINER_GALLERY_PRESET: ShaderPreset = {
 export const ALL_PRESETS: ShaderPreset[] = [
   BASIC_FOIL_PRESET,
   RARE_FOIL_PRESET,
+  DOUBLE_RARE_FOIL_PRESET,
   RAINBOW_HYPER_PRESET,
   GOLD_RELIC_PRESET,
   GLASS_SHATTER_PRESET,

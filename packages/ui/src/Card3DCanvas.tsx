@@ -73,6 +73,13 @@ const RARITY_LIGHTS: Record<string, { ambient: number; d1Color: number; d1Intens
     d2Color: 0x7dd3fc,
     d2Intensity: 0.65,
   },
+  'double-rare-foil': {
+    ambient: 0.78,
+    d1Color: 0xfffff0,
+    d1Intensity: 1.85,
+    d2Color: 0x7ee787,
+    d2Intensity: 0.85,
+  },
 };
 
 export function Card3DCanvas({
