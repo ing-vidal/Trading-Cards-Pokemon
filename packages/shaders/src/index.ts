@@ -198,11 +198,15 @@ export const DOUBLE_RARE_FOIL_PRESET: ShaderPreset = {
       float sparkle = step(0.978, randomSpark) * pow(facing, 2.5);
       sparkle *= 0.65 + 0.35 * sin(uTime * 3.5 + randomSpark * 16.0);
       float mouseHighlight = exp(-18.0 * distance(vUv, uMousePos * 0.18 + 0.5));
+      float edgeFacing = 1.0 - abs(vNormal.z);
+      float edgeReflection = pow(edgeFacing, 1.35) * (0.35 + 0.65 * facing);
+      vec3 edgeColor = foilColor(dot(vNormal.xy, vec2(0.8, 0.6)) + uTime * 0.12);
 
       vec3 finalColor = baseColor.rgb;
       finalColor = mix(finalColor, finalColor * (0.42 + foil * 1.18), (0.38 + fresnel * 0.62) * uIntensity);
       finalColor += foil * (broadBand * 0.62 + innerBand * 0.26 + crossBand * 0.18) * uIntensity;
       finalColor += vec3(1.0, 0.98, 0.9) * (specular * 0.58 + sparkle * 0.72 + mouseHighlight * 0.22) * uIntensity;
+      finalColor += edgeColor * edgeReflection * uIntensity * 0.95;
 
       gl_FragColor = vec4(finalColor, baseColor.a);
     }

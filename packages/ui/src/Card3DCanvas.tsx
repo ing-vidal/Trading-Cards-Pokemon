@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { getPresetById } from '@tcg/shaders';
 import { GoldCard3DCanvas } from './GoldCard3DCanvas';
 
@@ -163,7 +164,7 @@ export function Card3DCanvas({
     scene.add(dirLight2);
 
     // 4. Card Geometry & Shader Material
-    const geometry = new THREE.BoxGeometry(2.5, 3.5, 0.04);
+    const geometry = new RoundedBoxGeometry(2.5, 3.5, 0.12, 0.08, 6);
     const preset = getPresetById(presetId);
 
     const initialTexture = new THREE.DataTexture(
