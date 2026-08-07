@@ -152,7 +152,13 @@ export function Card3DCanvas({
     const geometry = new THREE.BoxGeometry(2.5, 3.5, 0.04);
     const preset = getPresetById(presetId);
 
-    const initialTexture = new THREE.Texture();
+    const initialTexture = new THREE.DataTexture(
+      new Uint8Array([255, 255, 255, 255, 255, 255]),
+      1,
+      1,
+      THREE.RGBFormat,
+    );
+    initialTexture.needsUpdate = true;
     if (imageUrl) {
       new THREE.TextureLoader().load(imageUrl, (tex) => {
         tex.colorSpace = THREE.SRGBColorSpace;

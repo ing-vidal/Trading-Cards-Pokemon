@@ -17,14 +17,6 @@ export const BASIC_FOIL_PRESET: ShaderPreset = {
     varying vec3 vNormal;
     varying vec3 vViewPosition;
 
-    float hash(vec2 p) {
-      return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
-    }
-
-    vec3 spectralColor(float value) {
-      return 0.5 + 0.5 * cos(6.28318 * (value + vec3(0.0, 0.33, 0.67)));
-    }
-
     void main() {
       vUv = uv;
       vNormal = normalize(normalMatrix * normal);
@@ -41,6 +33,14 @@ export const BASIC_FOIL_PRESET: ShaderPreset = {
     varying vec2 vUv;
     varying vec3 vNormal;
     varying vec3 vViewPosition;
+
+    float hash(vec2 p) {
+      return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+    }
+
+    vec3 spectralColor(float value) {
+      return 0.5 + 0.5 * cos(6.28318 * (value + vec3(0.0, 0.33, 0.67)));
+    }
 
     void main() {
       vec4 baseColor = texture2D(tDiffuse, vUv);
