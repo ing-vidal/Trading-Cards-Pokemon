@@ -317,7 +317,7 @@ export default function PublicHomePage() {
             rarity: c.rarity?.name || 'Common',
             rarityId: c.rarityId,
             rarityColor: c.rarity?.color || '#a855f7',
-            cardType: c.cardType || 'POKEMON',
+            cardType: c.cardType ?? null,
             energyType: c.energyType?.name || null,
             energyTypeId: c.energyTypeId || null,
             energyTypeIcon: c.energyType?.icon || null,
@@ -598,7 +598,7 @@ export default function PublicHomePage() {
                         backgroundColor: '#38bdf820',
                         color: '#38bdf8',
                       }}>
-                        {CARD_TYPE_OPTIONS.find(option => option.value === card.cardType)?.label || 'Pokémon'}
+                        {card.cardType ? CARD_TYPE_OPTIONS.find(option => option.value === card.cardType)?.label || card.cardType : 'Tipo no disponible'}
                       </span>
                       <span style={{
                         fontSize: '0.7rem', fontWeight: 700,
