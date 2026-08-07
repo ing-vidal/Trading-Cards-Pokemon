@@ -9,7 +9,8 @@ const Card3DCanvas = dynamic(
 );
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://trading-cards-pokemon.onrender.com';
-const PAGE_SIZE = 20;
+const DEFAULT_PAGE_SIZE = 50;
+const PAGE_SIZE_OPTIONS = [20, 50, 100];
 
 interface CardItem {
   id: string;
@@ -38,6 +39,7 @@ export default function CardsAdminPage() {
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [collectionFilter, setCollectionFilter] = useState('ALL');
   const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
 
   // Modals state
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -698,8 +700,10 @@ export default function CardsAdminPage() {
     return matchesSearch && matchesStatus && matchesCol;
   });
 
-  const pageCount = Math.max(1, Math.ceil(filteredCards.length / PAGE_SIZE));
-  const paginatedCards = filteredCards.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const pageCount = Math.max(1, Math.ceil(filteredCards.length / pageSize));
+  const paginatedCards = filteredCards.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const showingFrom = filteredCards.length === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const showingTo = Math.min(currentPage * pageSize, filteredCards.length);
 
   useEffect(() => {
     if (currentPage > pageCount) {
@@ -709,7 +713,7 @@ export default function CardsAdminPage() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, statusFilter, collectionFilter, cards.length]);
+  }, [searchTerm, statusFilter, collectionFilter, cards.length, pageSize]);
 
   // Calculate Metrics
   const totalCards = cards.length;
@@ -1153,41 +1157,91 @@ export default function CardsAdminPage() {
       {/* Pagination Controls */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem', gap: '1rem', flexWrap: 'wrap' }}>
         <div style={{ color: '#cbd5e1', fontSize: '0.9rem' }}>
-          Mostrando {paginatedCards.length} de {filteredCards.length} cartas
-          {filteredCards.length > PAGE_SIZE ? ` — página ${currentPage} de ${pageCount}` : ''}
+          Mostrando {showingFrom}-{showingTo} de {filteredCards.length} cartas
+          {filteredCards.length > pageSize ? ` — página ${currentPage} de ${pageCount}` : ''}
         </div>
-        {pageCount > 1 && (
-          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-            <button
-              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-              disabled={currentPage === 1}
+
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
+          <label style={{ color: '#cbd5e1', fontSize: '0.9rem' }}>
+            Filas por página:
+            <select
+              value={pageSize}
+              onChange={(e) => setPageSize(Number(e.target.value))}
               style={{
-                padding: '0.65rem 0.9rem',
-                borderRadius: '8px',
+                marginLeft: '0.5rem',
+                backgroundColor: '#09090b',
                 border: '1px solid #3f3f46',
-                backgroundColor: currentPage === 1 ? '#0f172a' : '#09090b',
-                color: currentPage === 1 ? '#6b7280' : '#f8fafc',
-                cursor: currentPage === 1 ? 'not-allowed' : 'pointer'
+                borderRadius: '8px',
+                padding: '0.55rem 0.75rem',
+                color: '#f8fafc',
+                fontSize: '0.9rem'
               }}
             >
-              ← Anterior
-            </button>
-            <button
-              onClick={() => setCurrentPage((prev) => Math.min(pageCount, prev + 1))}
-              disabled={currentPage === pageCount}
-              style={{
-                padding: '0.65rem 0.9rem',
-                borderRadius: '8px',
-                border: '1px solid #3f3f46',
-                backgroundColor: currentPage === pageCount ? '#0f172a' : '#09090b',
-                color: currentPage === pageCount ? '#6b7280' : '#f8fafc',
-                cursor: currentPage === pageCount ? 'not-allowed' : 'pointer'
-              }}
-            >
-              Siguiente →
-            </button>
-          </div>
-        )}
+              {PAGE_SIZE_OPTIONS.map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <button
+            onClick={() => setCurrentPage(1)}
+            disabled={currentPage === 1}
+            style={{
+              padding: '0.65rem 0.9rem',
+              borderRadius: '8px',
+              border: '1px solid #3f3f46',
+              backgroundColor: currentPage === 1 ? '#0f172a' : '#09090b',
+              color: currentPage === 1 ? '#6b7280' : '#f8fafc',
+              cursor: currentPage === 1 ? 'not-allowed' : 'pointer'
+            }}
+          >
+            « Primera
+          </button>
+          <button
+            onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+            disabled={currentPage === 1}
+            style={{
+              padding: '0.65rem 0.9rem',
+              borderRadius: '8px',
+              border: '1px solid #3f3f46',
+              backgroundColor: currentPage === 1 ? '#0f172a' : '#09090b',
+              color: currentPage === 1 ? '#6b7280' : '#f8fafc',
+              cursor: currentPage === 1 ? 'not-allowed' : 'pointer'
+            }}
+          >
+            ← Anterior
+          </button>
+          <button
+            onClick={() => setCurrentPage((prev) => Math.min(pageCount, prev + 1))}
+            disabled={currentPage === pageCount}
+            style={{
+              padding: '0.65rem 0.9rem',
+              borderRadius: '8px',
+              border: '1px solid #3f3f46',
+              backgroundColor: currentPage === pageCount ? '#0f172a' : '#09090b',
+              color: currentPage === pageCount ? '#6b7280' : '#f8fafc',
+              cursor: currentPage === pageCount ? 'not-allowed' : 'pointer'
+            }}
+          >
+            Siguiente →
+          </button>
+          <button
+            onClick={() => setCurrentPage(pageCount)}
+            disabled={currentPage === pageCount}
+            style={{
+              padding: '0.65rem 0.9rem',
+              borderRadius: '8px',
+              border: '1px solid #3f3f46',
+              backgroundColor: currentPage === pageCount ? '#0f172a' : '#09090b',
+              color: currentPage === pageCount ? '#6b7280' : '#f8fafc',
+              cursor: currentPage === pageCount ? 'not-allowed' : 'pointer'
+            }}
+          >
+            Última »
+          </button>
+        </div>
       </div>
 
       {/* CREATE MODAL */}
