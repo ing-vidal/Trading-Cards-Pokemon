@@ -34,6 +34,30 @@ function mapRarityToPreset(rarityName?: string): string {
   return 'basic-foil';
 }
 
+function normalizeCollectionImages(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value.filter((item): item is string => typeof item === 'string' && Boolean(item)).slice(0, 3);
+  }
+
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) return [];
+
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) {
+        return parsed.filter((item): item is string => typeof item === 'string' && Boolean(item)).slice(0, 3);
+      }
+    } catch {
+      // keep the original string as a single image
+    }
+
+    return [trimmed];
+  }
+
+  return [];
+}
+
 export default function CardDetailPage({ params }: PageProps) {
   const resolvedParams = React.use(params);
   const cardId = resolvedParams.id;
@@ -72,6 +96,8 @@ export default function CardDetailPage({ params }: PageProps) {
             const presetId = mapLevelToPreset(rarityLevel)
               || (!isPlaceholder ? shaderFromDb : '')
               || mapRarityToPreset(rarityName);
+            const collectionImages = normalizeCollectionImages(data.collection?.images || data.collection?.logo || data.collection?.image || data.collection?.imageUrl || data.collection?.cover);
+            const primaryCollectionImage = collectionImages[0] || data.collection?.logo || data.collection?.image || data.collection?.imageUrl || data.collection?.cover || null;
             setCard({
               id: data.id,
               name: data.name,
@@ -81,8 +107,9 @@ export default function CardDetailPage({ params }: PageProps) {
               collection: data.collection?.name || 'Base Set',
               rarity: rarityName,
               presetId: presetId,
-              collectionLogo: data.collection?.logo || data.collection?.image || data.collection?.imageUrl || data.collection?.cover || null,
-              expansionImage: data.collection?.logo || data.collection?.image || data.collection?.imageUrl || data.collection?.cover || null,
+              collectionLogo: primaryCollectionImage,
+              expansionImage: primaryCollectionImage,
+              collectionImages,
               description: data.description || `Carta oficial de ${data.name} en el ecosistema TCG Vision.`,
               imageUrl: data.assets?.[0]?.url || data.imageUrl || null,
               prices: data.products && data.products.length > 0
@@ -112,6 +139,8 @@ export default function CardDetailPage({ params }: PageProps) {
           const found = parsed.find((c: any) => c.id === cardId || c.name.toLowerCase() === cardId.toLowerCase());
           if (found) {
             const rarityName = found.rarity || '1-Star Rare';
+            const collectionImages = normalizeCollectionImages(found.images || found.collectionImages || found.collectionLogo || found.logo || found.image || found.imageUrl || found.cover);
+            const primaryCollectionImage = collectionImages[0] || found.collectionLogo || found.logo || found.image || found.imageUrl || found.cover || null;
             setCard({
               id: found.id,
               name: found.name,
@@ -119,8 +148,9 @@ export default function CardDetailPage({ params }: PageProps) {
               game: 'Pokemon TCG',
               language: 'English',
               collection: found.collection || 'Base Set',
-              collectionLogo: found.collectionLogo || found.logo || found.image || found.imageUrl || found.cover || null,
-              expansionImage: found.collectionLogo || found.logo || found.image || found.imageUrl || found.cover || null,
+              collectionLogo: primaryCollectionImage,
+              expansionImage: primaryCollectionImage,
+              collectionImages,
               rarity: rarityName,
               presetId: mapRarityToPreset(rarityName),
               description: `Carta personalizada de ${found.name}.`,

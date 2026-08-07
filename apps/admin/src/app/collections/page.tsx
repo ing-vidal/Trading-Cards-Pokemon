@@ -229,7 +229,10 @@ export default function CollectionsAdminPage() {
       slug: formData.slug || formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
       releaseDate: formData.releaseDate ? new Date(formData.releaseDate).toISOString() : undefined,
       description: formData.description || undefined,
-      logo: formData.logo || previewLogo || undefined,
+      logo: formData.images.length > 0
+        ? (formData.images.length > 1 ? JSON.stringify(formData.images) : formData.images[0] || formData.logo || previewLogo || undefined)
+        : formData.logo || previewLogo || undefined,
+      images: formData.images.length > 0 ? formData.images : undefined,
     };
 
     let createdApi = false;
@@ -257,7 +260,9 @@ export default function CollectionsAdminPage() {
         cardsCount: 0,
         releaseDate: formData.releaseDate || new Date().toISOString().split('T')[0],
         description: formData.description,
-        logo: formData.logo || formData.images[0] || previewLogo || undefined,
+        logo: formData.images.length > 0
+          ? (formData.images.length > 1 ? JSON.stringify(formData.images) : formData.images[0] || formData.logo || previewLogo || undefined)
+          : formData.logo || previewLogo || undefined,
         images: formData.images,
       };
       setCollections((prev) => {
@@ -299,7 +304,10 @@ export default function CollectionsAdminPage() {
       slug: formData.slug || formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
       releaseDate: formData.releaseDate ? new Date(formData.releaseDate).toISOString() : undefined,
       description: formData.description || undefined,
-      logo: formData.logo || previewLogo || undefined,
+      logo: formData.images.length > 0
+        ? (formData.images.length > 1 ? JSON.stringify(formData.images) : formData.images[0] || formData.logo || previewLogo || undefined)
+        : formData.logo || previewLogo || undefined,
+      images: formData.images.length > 0 ? formData.images : undefined,
     };
 
     let updatedApi = false;

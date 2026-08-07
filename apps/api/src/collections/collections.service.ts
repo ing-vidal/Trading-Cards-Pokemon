@@ -55,6 +55,9 @@ export class CollectionsService {
 
   async create(dto: CreateCollectionDto) {
     const slug = (dto.slug || dto.name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+    const normalizedImages = (dto.images || []).filter((item): item is string => Boolean(item)).slice(0, 3);
+    const logoValue = dto.logo
+      || (normalizedImages.length > 0 ? (normalizedImages.length > 1 ? JSON.stringify(normalizedImages) : normalizedImages[0]) : undefined);
 
     const existing = await this.prisma.collection.findFirst({
       where: {
@@ -72,7 +75,7 @@ export class CollectionsService {
         slug,
         code: dto.code.toUpperCase(),
         releaseDate: dto.releaseDate ? new Date(dto.releaseDate) : null,
-        logo: dto.logo || dto.images?.[0],
+        logo: logoValue,
         description: dto.description,
       },
     });
@@ -83,12 +86,16 @@ export class CollectionsService {
 
   async update(id: string, dto: UpdateCollectionDto) {
     await this.findOne(id);
+    const { images, ...rest } = dto;
+    const normalizedImages = (images || []).filter((item): item is string => Boolean(item)).slice(0, 3);
+    const logoValue = dto.logo
+      ?? (normalizedImages.length > 0 ? (normalizedImages.length > 1 ? JSON.stringify(normalizedImages) : normalizedImages[0]) : undefined);
 
     const updated = await this.prisma.collection.update({
       where: { id },
       data: {
-        ...dto,
-        logo: dto.logo ?? dto.images?.[0],
+        ...rest,
+        logo: logoValue,
         releaseDate: dto.releaseDate ? new Date(dto.releaseDate) : undefined,
       },
     });
