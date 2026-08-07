@@ -106,8 +106,8 @@ export default function CardsAdminPage() {
     { id: 'rarity-5',  name: '1-Star Rare',       color: '#fbbf24', shader: 'star-foil' },
     { id: 'rarity-6',  name: '2-Star Rare',       color: '#f59e0b', shader: 'two-star-foil' },
     { id: 'rarity-7',  name: '3-Star Rare',       color: '#f97316', shader: 'rainbow-hyper' },
-    { id: 'rarity-8',  name: 'Immersive Rare',    color: '#e879f9', shader: 'glass-shatter' },
-    { id: 'rarity-9',  name: 'Double Immersive',  color: '#c026d3', shader: 'glass-shatter' },
+    { id: 'rarity-8',  name: 'Immersive Rare',    color: '#e879f9', shader: 'immersive-rare' },
+    { id: 'rarity-9',  name: 'Double Immersive',  color: '#c026d3', shader: 'immersive-rare' },
     { id: 'rarity-10', name: 'Crown Rare',        color: '#eab308', shader: 'gold-relic' },
   ];
 
@@ -1871,6 +1871,7 @@ function RarityPickerWithPreview({ rarities, selectedId, previewImageUrl, onSele
             <div style={{ fontSize: '0.75rem', color: '#a1a1aa', lineHeight: 1.4, marginTop: '0.2rem' }}>
               {shader === 'gold-relic'      && '🥇 Iridiscencia rainbow + estrellas animadas + barrido metálico'}
               {shader === 'rainbow-hyper'   && '🌈 Espectro cromático continuo con destellos de prisma'}
+              {shader === 'immersive-rare'  && '✨ Parallax de profundidad + borde prismático + destellos reactivos'}
               {shader === 'glass-shatter'   && '💎 Facetas de cristal con refracción prismática'}
               {shader === 'promo-glow'      && '⚡ Aura neón pulsante con arcos de energía'}
               {shader === 'special-art'     && '🌌 Nebulosa cósmica con campo de estrellas animado'}

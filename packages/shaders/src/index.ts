@@ -614,6 +614,98 @@ export const GOLD_RELIC_PRESET: ShaderPreset = {
   },
 };
 
+// ─── IMMERSIVE RARE ──────────────────────────────────────────────────────────
+export const IMMERSIVE_RARE_PRESET: ShaderPreset = {
+  id: 'immersive-rare',
+  name: 'Immersive Rare Living Illustration',
+  description:
+    'Ilustración inmersiva con parallax cromático, profundidad por capas, brillo prismático y destellos reactivos al movimiento.',
+  vertexShader: `
+    varying vec2 vUv;
+    varying vec3 vNormal;
+    varying vec3 vViewPosition;
+
+    void main() {
+      vUv = uv;
+      vNormal = normalize(normalMatrix * normal);
+      vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+      vViewPosition = -mvPosition.xyz;
+      gl_Position = projectionMatrix * mvPosition;
+    }
+  `,
+  fragmentShader: `
+    uniform sampler2D tDiffuse;
+    uniform float uTime;
+    uniform float uIntensity;
+    uniform vec2 uMousePos;
+    varying vec2 vUv;
+    varying vec3 vNormal;
+    varying vec3 vViewPosition;
+
+    float hash(vec2 p) {
+      return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+    }
+
+    vec3 spectrum(float value) {
+      return 0.5 + 0.5 * cos(6.28318 * (value + vec3(0.0, 0.33, 0.67)));
+    }
+
+    float sparkle(vec2 uv, vec2 cellScale, float threshold) {
+      vec2 cell = floor(uv * cellScale);
+      float seed = hash(cell);
+      vec2 local = fract(uv * cellScale) - 0.5;
+      float crossShape = max(
+        (1.0 - smoothstep(0.0, 0.035, abs(local.x))) * (1.0 - smoothstep(0.08, 0.5, abs(local.y))),
+        (1.0 - smoothstep(0.0, 0.035, abs(local.y))) * (1.0 - smoothstep(0.08, 0.5, abs(local.x)))
+      );
+      float visibility = step(threshold, seed) * (0.65 + 0.35 * sin(uTime * 1.8 + seed * 30.0));
+      return crossShape * visibility;
+    }
+
+    void main() {
+      vec3 viewDir = normalize(vViewPosition);
+      float facing = max(dot(vNormal, viewDir), 0.0);
+      float fresnel = pow(1.0 - facing, 2.2);
+      vec2 tilt = uMousePos * vec2(0.024, 0.018);
+
+      // Separate the artwork into soft depth bands so the illustration shifts with the card.
+      float depth = smoothstep(0.12, 0.88, vUv.y) * 0.65 + 0.35;
+      vec2 parallax = tilt * depth;
+      vec2 chroma = vec2(0.006, 0.0) * (0.35 + fresnel) * uIntensity;
+      vec3 redLayer = texture2D(tDiffuse, clamp(vUv + parallax + chroma, 0.0, 1.0)).rgb;
+      vec3 greenLayer = texture2D(tDiffuse, clamp(vUv + parallax, 0.0, 1.0)).rgb;
+      vec3 blueLayer = texture2D(tDiffuse, clamp(vUv + parallax - chroma, 0.0, 1.0)).rgb;
+      vec3 col = vec3(redLayer.r, greenLayer.g, blueLayer.b);
+
+      // A slow diagonal light sweep keeps the surface alive without hiding the artwork.
+      float diagonal = dot(vUv - 0.5, vec2(0.78, 0.62)) + uTime * 0.075 + dot(uMousePos, vec2(0.08));
+      float sweep = exp(-pow((sin(diagonal * 3.14159) * 0.5 + 0.5 - 0.5) * 8.0, 2.0));
+      vec3 prism = spectrum(diagonal * 0.42 + facing * 0.25);
+      col += prism * sweep * (0.16 + fresnel * 0.3) * uIntensity;
+
+      // Inner framing and a restrained glass-like edge highlight.
+      float edge = min(min(vUv.x, 1.0 - vUv.x), min(vUv.y, 1.0 - vUv.y));
+      float frame = smoothstep(0.075, 0.018, edge) - smoothstep(0.018, 0.006, edge);
+      float rim = smoothstep(0.11, 0.0, edge) * (0.45 + fresnel * 1.2);
+      col += spectrum(vUv.x * 0.35 + uTime * 0.04) * frame * 0.55 * uIntensity;
+      col += vec3(0.75, 0.92, 1.0) * rim * 0.28 * uIntensity;
+
+      float stars = sparkle(vUv + uMousePos * 0.08, vec2(18.0, 25.0), 0.94);
+      stars += sparkle(vUv - uMousePos * 0.05, vec2(37.0, 52.0), 0.975) * 0.55;
+      col += vec3(1.0, 0.96, 0.86) * stars * (0.4 + fresnel) * uIntensity;
+
+      col = mix(col, col * (0.82 + prism * 0.32), fresnel * uIntensity * 0.55);
+      vec4 base = texture2D(tDiffuse, vUv);
+      gl_FragColor = vec4(mix(base.rgb, col, 0.82), base.a);
+    }
+  `,
+  uniformsDefaults: {
+    uTime: 0,
+    uIntensity: 0.9,
+    uMousePos: [0, 0],
+  },
+};
+
 // ─── DIAMOND / GLASS SHATTER ─────────────────────────────────────────────────
 export const GLASS_SHATTER_PRESET: ShaderPreset = {
   id: 'glass-shatter',
@@ -953,6 +1045,7 @@ export const ALL_PRESETS: ShaderPreset[] = [
   TWO_STAR_FOIL_PRESET,
   RAINBOW_HYPER_PRESET,
   GOLD_RELIC_PRESET,
+  IMMERSIVE_RARE_PRESET,
   GLASS_SHATTER_PRESET,
   PROMO_GLOW_PRESET,
   SPECIAL_ART_PRESET,

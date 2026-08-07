@@ -39,6 +39,13 @@ const RARITY_LIGHTS: Record<string, { ambient: number; d1Color: number; d1Intens
     d2Color: 0x4080ff,  // blue fill
     d2Intensity: 0.7,
   },
+  'immersive-rare': {
+    ambient: 0.72,
+    d1Color: 0xf6e7ff,
+    d1Intensity: 1.7,
+    d2Color: 0x62d7ff,
+    d2Intensity: 0.9,
+  },
   'promo-glow': {
     ambient: 0.6,
     d1Color: 0x00ffff,  // cyan
