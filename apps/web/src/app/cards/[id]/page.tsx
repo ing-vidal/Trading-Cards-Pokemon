@@ -87,6 +87,7 @@ export default function CardDetailPage({ params }: PageProps) {
             const isPlaceholder = !shaderFromDb || shaderFromDb === 'basic-foil';
             // Also map by level for 100% accuracy
             function mapLevelToPreset(level: string): string {
+              if (level === 'COMMON' || level === 'UNCOMMON') return 'basic-foil';
               if (level === 'GOLD')    return 'gold-relic';
               if (level === 'RAINBOW') return 'rainbow-hyper';
               if (level === 'SECRET')  return 'glass-shatter';

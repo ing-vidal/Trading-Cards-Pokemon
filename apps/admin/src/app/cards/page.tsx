@@ -158,7 +158,8 @@ export default function CardsAdminPage() {
             const level = r.level || '';
             let shader = dbShader || 'basic-foil';
             if (isPlaceholder || level) {
-              if (level === 'CROWN')            shader = 'gold-relic';
+              if (level === 'COMMON' || level === 'UNCOMMON') shader = 'basic-foil';
+              else if (level === 'CROWN')            shader = 'gold-relic';
               else if (level === 'IMMERSIVE' || level === 'DOUBLE_IMMERSIVE') shader = 'glass-shatter';
               else if (level === 'STAR_2' || level === 'STAR_3') shader = 'rainbow-hyper';
               else if (!isPlaceholder) shader = dbShader;
