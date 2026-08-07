@@ -104,7 +104,7 @@ export default function CardsAdminPage() {
     { id: 'rarity-3',  name: 'Rare',              color: '#34d399', shader: 'rare-foil' },
     { id: 'rarity-4',  name: 'Double Rare',       color: '#a78bfa', shader: 'double-rare-foil' },
     { id: 'rarity-5',  name: '1-Star Rare',       color: '#fbbf24', shader: 'star-foil' },
-    { id: 'rarity-6',  name: '2-Star Rare',       color: '#f59e0b', shader: 'rainbow-hyper' },
+    { id: 'rarity-6',  name: '2-Star Rare',       color: '#f59e0b', shader: 'two-star-foil' },
     { id: 'rarity-7',  name: '3-Star Rare',       color: '#f97316', shader: 'rainbow-hyper' },
     { id: 'rarity-8',  name: 'Immersive Rare',    color: '#e879f9', shader: 'glass-shatter' },
     { id: 'rarity-9',  name: 'Double Immersive',  color: '#c026d3', shader: 'glass-shatter' },
@@ -162,6 +162,7 @@ export default function CardsAdminPage() {
               else if (level === 'RARE')          shader = 'rare-foil';
               else if (level === 'DOUBLE_RARE')   shader = 'double-rare-foil';
               else if (level === 'STAR_1')         shader = 'star-foil';
+              else if (level === 'STAR_2')         shader = 'two-star-foil';
               else if (level === 'CROWN')            shader = 'gold-relic';
               else if (level === 'IMMERSIVE' || level === 'DOUBLE_IMMERSIVE') shader = 'glass-shatter';
               else if (level === 'STAR_2' || level === 'STAR_3') shader = 'rainbow-hyper';
@@ -1792,6 +1793,7 @@ function RarityPickerWithPreview({ rarities, selectedId, previewImageUrl, onSele
     'rare-foil':        '🌈',
     'double-rare-foil': '💠',
     'star-foil':        '⭐',
+    'two-star-foil':    '⭐⭐',
     'rainbow-hyper':    '🌈',
     'gold-relic':       '🥇',
     'glass-shatter':    '💎',
@@ -1876,6 +1878,7 @@ function RarityPickerWithPreview({ rarities, selectedId, previewImageUrl, onSele
               {shader === 'rare-foil'        && '🌈 Holo prismático con bandas diagonales y destellos'}
               {shader === 'double-rare-foil' && '💠 Holo intenso con franjas amplias y reflejo dinámico'}
               {shader === 'star-foil'        && '⭐ Marco galáctico nacarado con ondas curvas multicolor'}
+              {shader === 'two-star-foil'   && '⭐⭐ Campo cósmico con partículas, estrellas y rayos prismáticos'}
               {shader === 'basic-foil'      && '✨ Holo clásico con fresnel suave y shimmer lineal'}
             </div>
             <div style={{ fontSize: '0.7rem', color: '#52525b', marginTop: '0.3rem' }}>

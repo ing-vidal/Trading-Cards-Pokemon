@@ -293,6 +293,89 @@ export const ONE_STAR_FOIL_PRESET: ShaderPreset = {
   },
 };
 
+// ─── TWO STAR FOIL ───────────────────────────────────────────────────────────
+export const TWO_STAR_FOIL_PRESET: ShaderPreset = {
+  id: 'two-star-foil',
+  name: 'Two Star Cosmic Foil',
+  description: 'Foil cósmico con partículas profundas, estrellas en cruz, rayos prismáticos y borde 3D.',
+  vertexShader: `
+    varying vec2 vUv;
+    varying vec3 vNormal;
+    varying vec3 vViewPosition;
+
+    void main() {
+      vUv = uv;
+      vNormal = normalize(normalMatrix * normal);
+      vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+      vViewPosition = -mvPosition.xyz;
+      gl_Position = projectionMatrix * mvPosition;
+    }
+  `,
+  fragmentShader: `
+    uniform sampler2D tDiffuse;
+    uniform float uTime;
+    uniform float uIntensity;
+    uniform vec2 uMousePos;
+    varying vec2 vUv;
+    varying vec3 vNormal;
+    varying vec3 vViewPosition;
+
+    float hash(vec2 p) {
+      return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+    }
+
+    vec3 cosmicColor(float value) {
+      return 0.5 + 0.5 * cos(6.28318 * (value + vec3(0.0, 0.28, 0.64)));
+    }
+
+    float starBurst(vec2 uv, float seed) {
+      vec2 local = fract(uv * (18.0 + seed * 14.0)) - 0.5;
+      float vertical = max(0.0, 1.0 - abs(local.x) * 18.0) * max(0.0, 1.0 - abs(local.y) * 3.0);
+      float horizontal = max(0.0, 1.0 - abs(local.y) * 18.0) * max(0.0, 1.0 - abs(local.x) * 3.0);
+      return pow(max(vertical, horizontal), 2.0) * step(0.94, hash(floor(uv * (18.0 + seed * 14.0))));
+    }
+
+    void main() {
+      vec4 baseColor = texture2D(tDiffuse, vUv);
+      vec3 viewDir = normalize(vViewPosition);
+      float facing = max(dot(viewDir, vNormal), 0.0);
+      float fresnel = pow(1.0 - facing, 1.35);
+      vec2 centered = vUv - 0.5;
+
+      float diagonal = dot(centered, vec2(0.76, 0.65));
+      float rayA = pow(max(0.0, sin(diagonal * 26.0 - uTime * 0.8)), 8.0);
+      float rayB = pow(max(0.0, sin(dot(centered, vec2(-0.62, 0.92)) * 19.0 + uTime * 0.55)), 10.0);
+      float vortex = sin(length(centered) * 32.0 - atan(centered.y, centered.x) * 5.0 - uTime * 0.5) * 0.5 + 0.5;
+      vec3 cosmic = cosmicColor(diagonal * 0.55 + vortex * 0.18 + fresnel * 0.35 + uTime * 0.02);
+
+      float particleField = step(0.975, hash(floor(vUv * vec2(34.0, 48.0))));
+      particleField *= 0.45 + 0.55 * sin(uTime * 2.5 + hash(floor(vUv * vec2(34.0, 48.0))) * 20.0);
+      float stars = starBurst(vUv + vec2(uTime * 0.006, -uTime * 0.004), 0.7);
+      stars += starBurst(vUv * 1.7 - uTime * 0.008, 1.4) * 0.7;
+
+      float border = smoothstep(0.34, 0.48, max(abs(centered.x), abs(centered.y)));
+      float edgeFacing = 1.0 - abs(vNormal.z);
+      float edgeReflection = pow(edgeFacing, 1.15) * (0.4 + 0.6 * facing);
+      vec3 edgeColor = cosmicColor(dot(vNormal.xy, vec2(0.78, 0.62)) + uTime * 0.14);
+      float mouseHighlight = exp(-16.0 * distance(vUv, uMousePos * 0.18 + 0.5));
+
+      vec3 finalColor = baseColor.rgb;
+      finalColor = mix(finalColor, finalColor * (0.58 + cosmic * 0.92), (0.34 + fresnel * 0.66) * uIntensity);
+      finalColor += cosmic * (rayA * 0.6 + rayB * 0.45 + vortex * 0.16) * uIntensity;
+      finalColor += cosmic * border * 0.28 * uIntensity;
+      finalColor += vec3(1.0, 0.96, 1.0) * (particleField * 0.48 + stars * 0.95 + mouseHighlight * 0.2) * uIntensity;
+      finalColor += edgeColor * edgeReflection * uIntensity * 1.05;
+
+      gl_FragColor = vec4(finalColor, baseColor.a);
+    }
+  `,
+  uniformsDefaults: {
+    uTime: 0,
+    uIntensity: 0.92,
+    uMousePos: [0, 0],
+  },
+};
+
 // ─── RAINBOW HYPER ──────────────────────────────────────────────────────────
 export const RAINBOW_HYPER_PRESET: ShaderPreset = {
   id: 'rainbow-hyper',
@@ -867,6 +950,7 @@ export const ALL_PRESETS: ShaderPreset[] = [
   RARE_FOIL_PRESET,
   DOUBLE_RARE_FOIL_PRESET,
   ONE_STAR_FOIL_PRESET,
+  TWO_STAR_FOIL_PRESET,
   RAINBOW_HYPER_PRESET,
   GOLD_RELIC_PRESET,
   GLASS_SHATTER_PRESET,

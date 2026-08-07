@@ -24,6 +24,7 @@ interface PageProps {
 function mapRarityToPreset(rarityName?: string): string {
   if (!rarityName) return 'basic-foil';
   const r = rarityName.toLowerCase();
+  if (r.includes('2-star') || r.includes('2 star')) return 'two-star-foil';
   if (r.includes('1-star') || r.includes('1 star')) return 'star-foil';
   if (r.includes('double rare')) return 'double-rare-foil';
   if (r === 'rare') return 'rare-foil';
@@ -94,6 +95,7 @@ export default function CardDetailPage({ params }: PageProps) {
               if (level === 'RARE')    return 'rare-foil';
               if (level === 'DOUBLE_RARE') return 'double-rare-foil';
               if (level === 'STAR_1') return 'star-foil';
+              if (level === 'STAR_2') return 'two-star-foil';
               if (level === 'GOLD')    return 'gold-relic';
               if (level === 'RAINBOW') return 'rainbow-hyper';
               if (level === 'SECRET')  return 'glass-shatter';
@@ -223,7 +225,7 @@ export default function CardDetailPage({ params }: PageProps) {
           language: 'English',
           collection: 'Base Set',
           rarity: '2-Star Secret Rare',
-          presetId: 'rainbow-hyper',
+          presetId: 'two-star-foil',
           description: 'Pikachu almacena electricidad en las bolsas de sus mejillas. Edición especial con acabado holo brillante.',
           imageUrl: 'https://images.pokemontcg.io/base1/58_hires.png',
           prices: [
