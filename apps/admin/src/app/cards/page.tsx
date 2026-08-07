@@ -61,9 +61,7 @@ export default function CardsAdminPage() {
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   // Import/Export state
-  const [selectedImageFiles, setSelectedImageFiles] = useState<File[]>([]);
   const excelFileRef = useRef<HTMLInputElement | null>(null);
-  const imagesInputRef = useRef<HTMLInputElement | null>(null);
 
   const normalizeValue = (value: string | undefined) => {
     if (!value) return undefined;
@@ -529,11 +527,7 @@ export default function CardsAdminPage() {
       descripcion: 'description',
     };
 
-    // collect selected images (if any)
-    const imageFiles: File[] = selectedImageFiles.length > 0 ? selectedImageFiles : imagesInputRef.current?.files ? Array.from(imagesInputRef.current.files) : [];
-    if (imageFiles.length > 0) {
-      console.info('Image folder files loaded for import:', imageFiles.length, imageFiles.map((f) => ({ name: f.name, path: (f as any).webkitRelativePath || f.name })));
-    }
+    const imageFiles: File[] = [];
 
     const normalizeImageFilename = (filename: string) => {
       let imageFilename = filename.trim();
@@ -673,8 +667,6 @@ export default function CardsAdminPage() {
 
     // Refresh list
     await fetchCardsFromApi();
-    if (imagesInputRef.current) imagesInputRef.current.value = '';
-    setSelectedImageFiles([]);
     if (excelFileRef.current) excelFileRef.current.value = '';
 
     const summary = `Import complete: ${processed} succeeded, ${failed} failed.`;
@@ -793,37 +785,7 @@ export default function CardsAdminPage() {
             ⤒ Importar Excel/CSV
           </button>
 
-          <button
-            onClick={() => imagesInputRef.current?.click()}
-            title="Selecciona la carpeta que contiene imágenes referenciadas en el CSV"
-            style={{
-              backgroundColor: '#f59e0b',
-              color: '#ffffff',
-              border: 'none',
-              borderRadius: '10px',
-              padding: '0.65rem 1rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              fontSize: '0.86rem'
-            }}
-          >
-            📁 Seleccionar carpeta de imágenes
-          </button>
-
-          {/* Hidden inputs for selecting Excel and optional images folder */}
           <input ref={excelFileRef} type="file" accept=".xlsx,.xls,.csv" style={{ display: 'none' }} onChange={handleExcelFile} />
-          <input
-            ref={imagesInputRef}
-            type="file"
-            multiple
-            style={{ display: 'none' }}
-            {...({ webkitdirectory: true, directory: true } as any)}
-            onChange={(event) => {
-              const files = event.target.files ? Array.from(event.target.files) : [];
-              setSelectedImageFiles(files);
-              console.info('Selected image folder files', files.length, files.map((f) => ({ name: f.name, path: (f as any).webkitRelativePath || f.name })));
-            }}
-          />
         </div>
       </div>
 
