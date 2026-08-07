@@ -22,6 +22,10 @@ export class CreateCollectionDto {
   logo?: string;
 
   @IsOptional()
+  @IsString({ each: true })
+  images?: string[];
+
+  @IsOptional()
   @IsString()
   description?: string;
 }

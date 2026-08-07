@@ -72,7 +72,7 @@ export class CollectionsService {
         slug,
         code: dto.code.toUpperCase(),
         releaseDate: dto.releaseDate ? new Date(dto.releaseDate) : null,
-        logo: dto.logo,
+        logo: dto.logo || dto.images?.[0],
         description: dto.description,
       },
     });
@@ -88,6 +88,7 @@ export class CollectionsService {
       where: { id },
       data: {
         ...dto,
+        logo: dto.logo ?? dto.images?.[0],
         releaseDate: dto.releaseDate ? new Date(dto.releaseDate) : undefined,
       },
     });

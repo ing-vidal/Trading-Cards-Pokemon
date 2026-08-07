@@ -13,6 +13,7 @@ interface CollectionItem {
   releaseDate: string;
   description?: string;
   logo?: string;
+  images?: string[];
 }
 
 const INITIAL_COLLECTIONS: CollectionItem[] = [
@@ -22,16 +23,44 @@ const INITIAL_COLLECTIONS: CollectionItem[] = [
   { id: '4', name: 'Promotional Cards', code: 'PROMO', slug: 'promotional-cards', cardsCount: 45, releaseDate: '2022-05-15', description: 'Cartas promocionales especiales de eventos.' },
 ];
 
-const normalizeCollection = (c: any): CollectionItem => ({
-  id: c.id,
-  name: c.name,
-  code: c.code,
-  slug: c.slug,
-  cardsCount: c._count?.cards ?? c.cardsCount ?? 0,
-  releaseDate: c.releaseDate ? new Date(c.releaseDate).toISOString().split('T')[0] : 'N/A',
-  description: c.description || '',
-  logo: c.logo || '',
-});
+const normalizeCollectionImages = (value: unknown): string[] => {
+  if (Array.isArray(value)) {
+    return value.filter((item): item is string => typeof item === 'string' && Boolean(item)).slice(0, 3);
+  }
+
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) return [];
+
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) {
+        return parsed.filter((item): item is string => typeof item === 'string' && Boolean(item)).slice(0, 3);
+      }
+    } catch {
+      // keep the original string as a single image
+    }
+
+    return [trimmed];
+  }
+
+  return [];
+};
+
+const normalizeCollection = (c: any): CollectionItem => {
+  const images = normalizeCollectionImages(c.images || c.logo);
+  return {
+    id: c.id,
+    name: c.name,
+    code: c.code,
+    slug: c.slug,
+    cardsCount: c._count?.cards ?? c.cardsCount ?? 0,
+    releaseDate: c.releaseDate ? new Date(c.releaseDate).toISOString().split('T')[0] : 'N/A',
+    description: c.description || '',
+    logo: images[0] || c.logo || '',
+    images,
+  };
+};
 
 const dedupeCollections = (items: CollectionItem[]) => {
   const seen = new Set<string>();
@@ -85,19 +114,43 @@ export default function CollectionsAdminPage() {
     releaseDate: '',
     description: '',
     logo: '',
+    images: [] as string[],
   });
   const [previewLogo, setPreviewLogo] = useState<string | null>(null);
+  const [previewImages, setPreviewImages] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const readFileAsDataUrl = (file: File) => new Promise<string>((resolve) => {
     const reader = new FileReader();
-    reader.onloadend = () => {
-      setPreviewLogo(reader.result as string);
-      setFormData((prev) => ({ ...prev, logo: reader.result as string }));
-    };
+    reader.onloadend = () => resolve(reader.result as string);
     reader.readAsDataURL(file);
+  });
+
+  const handleImagesFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []).slice(0, 3);
+    if (files.length === 0) return;
+
+    const imageUrls = await Promise.all(files.map((file) => readFileAsDataUrl(file)));
+    const nextImages = imageUrls.slice(0, 3);
+    setPreviewImages(nextImages);
+    setPreviewLogo(nextImages[0] || null);
+    setFormData((prev) => ({
+      ...prev,
+      images: nextImages,
+      logo: nextImages[0] || prev.logo,
+    }));
+  };
+
+  const handleRemoveImage = (index: number) => {
+    const nextImages = previewImages.filter((_, imageIndex) => imageIndex !== index);
+    const nextLogo = nextImages[0] || '';
+    setPreviewImages(nextImages);
+    setPreviewLogo(nextLogo || null);
+    setFormData((prev) => ({
+      ...prev,
+      images: nextImages,
+      logo: nextLogo,
+    }));
   };
 
   // Fetch collections from API
@@ -158,8 +211,10 @@ export default function CollectionsAdminPage() {
       releaseDate: new Date().toISOString().split('T')[0],
       description: '',
       logo: '',
+      images: [],
     });
     setPreviewLogo(null);
+    setPreviewImages([]);
   };
 
   // Create Collection Handler
@@ -202,7 +257,8 @@ export default function CollectionsAdminPage() {
         cardsCount: 0,
         releaseDate: formData.releaseDate || new Date().toISOString().split('T')[0],
         description: formData.description,
-        logo: formData.logo || previewLogo || undefined,
+        logo: formData.logo || formData.images[0] || previewLogo || undefined,
+        images: formData.images,
       };
       setCollections((prev) => {
         const next = dedupeCollections([item, ...prev]);
@@ -218,15 +274,18 @@ export default function CollectionsAdminPage() {
 
   const handleEditOpen = (col: CollectionItem) => {
     setEditingCol(col);
+    const initialImages = normalizeCollectionImages(col.images || col.logo);
     setFormData({
       name: col.name,
       code: col.code,
       slug: col.slug,
       releaseDate: col.releaseDate !== 'N/A' ? col.releaseDate : '',
       description: col.description || '',
-      logo: col.logo || '',
+      logo: initialImages[0] || col.logo || '',
+      images: initialImages,
     });
-    setPreviewLogo(col.logo || null);
+    setPreviewImages(initialImages);
+    setPreviewLogo(initialImages[0] || col.logo || null);
   };
 
   const handleEditSubmit = async (e: React.FormEvent) => {
@@ -270,7 +329,8 @@ export default function CollectionsAdminPage() {
                 slug: formData.slug || formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
                 releaseDate: formData.releaseDate || c.releaseDate,
                 description: formData.description,
-                logo: formData.logo || previewLogo || c.logo,
+                logo: formData.logo || formData.images[0] || previewLogo || c.logo,
+                images: formData.images,
               }
             : c
         );
@@ -579,12 +639,9 @@ export default function CollectionsAdminPage() {
         <ModalWrapper title="📦 Registrar Nueva Colección TCG" onClose={() => setShowCreateModal(false)}>
           <form onSubmit={handleCreateSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             <ImageUploaderInput
-              previewLogo={previewLogo}
-              onImageChange={handleImageFileChange}
-              onUrlChange={(url) => {
-                setFormData({ ...formData, logo: url });
-                setPreviewLogo(url);
-              }}
+              images={previewImages}
+              onImageChange={handleImagesFileChange}
+              onRemoveImage={handleRemoveImage}
             />
 
             <div>
@@ -662,12 +719,9 @@ export default function CollectionsAdminPage() {
         <ModalWrapper title={`Editar Colección: ${editingCol.name}`} onClose={() => setEditingCol(null)}>
           <form onSubmit={handleEditSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             <ImageUploaderInput
-              previewLogo={previewLogo}
-              onImageChange={handleImageFileChange}
-              onUrlChange={(url) => {
-                setFormData({ ...formData, logo: url });
-                setPreviewLogo(url);
-              }}
+              images={previewImages}
+              onImageChange={handleImagesFileChange}
+              onRemoveImage={handleRemoveImage}
             />
 
             <div>
@@ -850,17 +904,17 @@ const submitBtnStyle: React.CSSProperties = {
 };
 
 function ImageUploaderInput({
-  previewLogo,
+  images,
   onImageChange,
-  onUrlChange,
+  onRemoveImage,
 }: {
-  previewLogo: string | null;
+  images: string[];
   onImageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onUrlChange: (url: string) => void;
+  onRemoveImage: (index: number) => void;
 }) {
   return (
     <div>
-      <label style={labelStyle}>Imagen de la Expansión</label>
+      <label style={labelStyle}>Imágenes de la Expansión (hasta 3)</label>
       <div style={{
         border: '2px dashed #3f3f46',
         borderRadius: '10px',
@@ -870,24 +924,46 @@ function ImageUploaderInput({
         position: 'relative',
         marginBottom: '0.75rem'
       }}>
-        {previewLogo ? (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
-            <img src={previewLogo} alt="Vista Previa" style={{ height: '110px', borderRadius: '8px', border: '1px solid #38bdf8', objectFit: 'contain' }} />
-            <span style={{ fontSize: '0.75rem', color: '#34d399', fontWeight: 600 }}>✓ Imagen de sobre cargada</span>
+        {images.length > 0 ? (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(90px, 1fr))', gap: '0.6rem' }}>
+            {images.map((image, index) => (
+              <div key={`${image}-${index}`} style={{ position: 'relative' }}>
+                <img src={image} alt={`Vista previa ${index + 1}`} style={{ width: '100%', height: '110px', borderRadius: '8px', border: '1px solid #38bdf8', objectFit: 'cover' }} />
+                <button
+                  type="button"
+                  onClick={() => onRemoveImage(index)}
+                  style={{
+                    position: 'absolute',
+                    top: '0.3rem',
+                    right: '0.3rem',
+                    border: 'none',
+                    borderRadius: '999px',
+                    backgroundColor: 'rgba(15, 23, 42, 0.8)',
+                    color: '#f8fafc',
+                    cursor: 'pointer',
+                    width: '24px',
+                    height: '24px',
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+            ))}
           </div>
         ) : (
           <div>
             <span style={{ fontSize: '1.5rem', display: 'block', marginBottom: '0.4rem' }}>📁</span>
             <span style={{ fontSize: '0.85rem', color: '#f4f4f5', fontWeight: 600 }}>
-              Subir imagen del sobre o portada de la expansión
+              Sube hasta 3 imágenes para la colección
             </span>
-            <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.75rem', color: '#71717a' }}>PNG, JPG, WEBP de alta resolución • se mostrará en la vista de detalle de la carta</p>
+            <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.75rem', color: '#71717a' }}>PNG, JPG o WEBP • se usarán como galería de la expansión</p>
           </div>
         )}
 
         <input
           type="file"
           accept="image/*"
+          multiple
           onChange={onImageChange}
           style={{
             position: 'absolute',

@@ -22,6 +22,10 @@ export class UpdateCollectionDto {
   logo?: string;
 
   @IsOptional()
+  @IsString({ each: true })
+  images?: string[];
+
+  @IsOptional()
   @IsString()
   description?: string;
 }
