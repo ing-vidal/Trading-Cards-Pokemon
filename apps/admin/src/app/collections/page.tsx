@@ -22,6 +22,52 @@ const INITIAL_COLLECTIONS: CollectionItem[] = [
   { id: '4', name: 'Promotional Cards', code: 'PROMO', slug: 'promotional-cards', cardsCount: 45, releaseDate: '2022-05-15', description: 'Cartas promocionales especiales de eventos.' },
 ];
 
+const normalizeCollection = (c: any): CollectionItem => ({
+  id: c.id,
+  name: c.name,
+  code: c.code,
+  slug: c.slug,
+  cardsCount: c._count?.cards ?? c.cardsCount ?? 0,
+  releaseDate: c.releaseDate ? new Date(c.releaseDate).toISOString().split('T')[0] : 'N/A',
+  description: c.description || '',
+  logo: c.logo || '',
+});
+
+const dedupeCollections = (items: CollectionItem[]) => {
+  const seen = new Set<string>();
+  return items.filter((item) => {
+    const key = item.id || `${item.slug}-${item.code}`;
+    if (seen.has(key)) {
+      return false;
+    }
+    seen.add(key);
+    return true;
+  });
+};
+
+const mergeCollections = (apiCollections: CollectionItem[], localCollections: CollectionItem[]) => {
+  const merged = [...apiCollections];
+  const apiKeys = new Set(apiCollections.map((col) => col.id || `${col.slug}-${col.code}`));
+
+  localCollections.forEach((col) => {
+    const key = col.id || `${col.slug}-${col.code}`;
+    if (!apiKeys.has(key)) {
+      merged.push(col);
+      apiKeys.add(key);
+    }
+  });
+
+  return dedupeCollections(merged);
+};
+
+const persistCollections = (updated: CollectionItem[]) => {
+  try {
+    localStorage.setItem('tcg_custom_collections', JSON.stringify(updated));
+  } catch (e) {
+    console.warn('Could not save collections to localStorage:', e);
+  }
+};
+
 export default function CollectionsAdminPage() {
   const [collections, setCollections] = useState<CollectionItem[]>(INITIAL_COLLECTIONS);
   const [searchTerm, setSearchTerm] = useState('');
@@ -56,24 +102,14 @@ export default function CollectionsAdminPage() {
 
   // Fetch collections from API
   const fetchCollections = async () => {
+    let apiCols: CollectionItem[] = [];
+
     try {
-      const res = await fetch(`${API_BASE_URL}/api/collections`);
+      const res = await fetch(`${API_BASE_URL}/api/collections`, { cache: 'no-store' });
       if (res.ok) {
         const json = await res.json();
         if (Array.isArray(json) && json.length > 0) {
-          const apiCols: CollectionItem[] = json.map((c: any) => ({
-            id: c.id,
-            name: c.name,
-            code: c.code,
-            slug: c.slug,
-            cardsCount: c._count?.cards ?? c.cardsCount ?? 0,
-            releaseDate: c.releaseDate ? new Date(c.releaseDate).toISOString().split('T')[0] : 'N/A',
-            description: c.description || '',
-            logo: c.logo || '',
-          }));
-
-          setCollections(apiCols);
-          return;
+          apiCols = json.map(normalizeCollection);
         }
       }
     } catch (e) {
@@ -85,11 +121,19 @@ export default function CollectionsAdminPage() {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          setCollections(parsed);
+          const merged = mergeCollections(apiCols, parsed);
+          setCollections(merged);
+          persistCollections(merged);
+          return;
         }
       }
     } catch (e) {
       console.warn('Could not load collections from localStorage:', e);
+    }
+
+    if (apiCols.length > 0) {
+      setCollections(apiCols);
+      persistCollections(apiCols);
     }
   };
 
@@ -98,12 +142,11 @@ export default function CollectionsAdminPage() {
   }, []);
 
   const saveToLocalStorageFallback = (updated: CollectionItem[]) => {
-    setCollections(updated);
-    try {
-      localStorage.setItem('tcg_custom_collections', JSON.stringify(updated));
-    } catch (e) {
-      console.warn('Could not save collections to localStorage:', e);
-    }
+    setCollections((prev) => {
+      const merged = mergeCollections(updated, prev);
+      persistCollections(merged);
+      return merged;
+    });
   };
 
   // Reset form
@@ -161,18 +204,11 @@ export default function CollectionsAdminPage() {
         description: formData.description,
         logo: formData.logo || previewLogo || undefined,
       };
-      saveToLocalStorageFallback([item, ...collections]);
-    }
-
-    setShowCreateModal(false);
-    resetForm();
-    setIsSubmitting(false);
-  };
-
-  // Edit Collection Handler
-  const handleEditOpen = (col: CollectionItem) => {
-    setEditingCol(col);
-    setFormData({
+      setCollections((prev) => {
+        const next = dedupeCollections([item, ...prev]);
+        persistCollections(next);
+        return next;
+      });
       name: col.name,
       code: col.code,
       slug: col.slug,
@@ -214,20 +250,24 @@ export default function CollectionsAdminPage() {
     }
 
     if (!updatedApi) {
-      const updatedList = collections.map((c) =>
-        c.id === editingCol.id
-          ? {
-              ...c,
-              name: formData.name,
-              code: formData.code.toUpperCase(),
-              slug: formData.slug || formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-              releaseDate: formData.releaseDate || c.releaseDate,
-              description: formData.description,
-              logo: formData.logo || previewLogo || c.logo,
-            }
-          : c
-      );
-      saveToLocalStorageFallback(updatedList);
+      setCollections((prev) => {
+        const updatedList = prev.map((c) =>
+          c.id === editingCol.id
+            ? {
+                ...c,
+                name: formData.name,
+                code: formData.code.toUpperCase(),
+                slug: formData.slug || formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+                releaseDate: formData.releaseDate || c.releaseDate,
+                description: formData.description,
+                logo: formData.logo || previewLogo || c.logo,
+              }
+            : c
+        );
+        const next = dedupeCollections(updatedList);
+        persistCollections(next);
+        return next;
+      });
     }
 
     setEditingCol(null);
@@ -254,8 +294,12 @@ export default function CollectionsAdminPage() {
     }
 
     if (!deletedApi) {
-      const updatedList = collections.filter((c) => c.id !== deletingCol.id);
-      saveToLocalStorageFallback(updatedList);
+      setCollections((prev) => {
+        const updatedList = prev.filter((c) => c.id !== deletingCol.id);
+        const next = dedupeCollections(updatedList);
+        persistCollections(next);
+        return next;
+      });
     }
 
     setDeletingCol(null);
