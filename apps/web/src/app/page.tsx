@@ -260,7 +260,7 @@ export default function PublicHomePage() {
   const [loading, setLoading]                 = useState(true);
 
   const [search, setSearch]                         = useState('');
-  const [selectedCollection, setSelectedCollection] = useState('ALL');
+  const [selectedCollection, setSelectedCollection] = useState('Genes Formidables');
   const [selectedRarityId, setSelectedRarityId]     = useState('ALL');
   const [selectedEnergyTypeId, setSelectedEnergyTypeId] = useState('ALL');
   const [selectedCardType, setSelectedCardType]     = useState('ALL');
@@ -337,15 +337,21 @@ export default function PublicHomePage() {
     loadCatalogData();
   }, []);
 
-  const filteredCards = cards.filter(c => {
-    const matchesSearch  = c.name.toLowerCase().includes(search.toLowerCase()) ||
-                           c.number.toLowerCase().includes(search.toLowerCase());
-    const matchesCol     = selectedCollection === 'ALL' || c.collection === selectedCollection;
-    const matchesRarity  = selectedRarityId === 'ALL' || c.rarityId === selectedRarityId;
-    const matchesEnergy  = selectedEnergyTypeId === 'ALL' || c.energyTypeId === selectedEnergyTypeId;
-    const matchesCardType = selectedCardType === 'ALL' || c.cardType === selectedCardType;
-    return matchesSearch && matchesCol && matchesRarity && matchesEnergy && matchesCardType;
-  });
+  const filteredCards = cards
+    .filter(c => {
+      const matchesSearch  = c.name.toLowerCase().includes(search.toLowerCase()) ||
+                             c.number.toLowerCase().includes(search.toLowerCase());
+      const matchesCol     = selectedCollection === 'ALL' || c.collection === selectedCollection;
+      const matchesRarity  = selectedRarityId === 'ALL' || c.rarityId === selectedRarityId;
+      const matchesEnergy  = selectedEnergyTypeId === 'ALL' || c.energyTypeId === selectedEnergyTypeId;
+      const matchesCardType = selectedCardType === 'ALL' || c.cardType === selectedCardType;
+      return matchesSearch && matchesCol && matchesRarity && matchesEnergy && matchesCardType;
+    })
+    .sort((a, b) => {
+      const numberA = Number(a.number.match(/(\d+)$/)?.[1] || Number.MAX_SAFE_INTEGER);
+      const numberB = Number(b.number.match(/(\d+)$/)?.[1] || Number.MAX_SAFE_INTEGER);
+      return numberA - numberB || a.number.localeCompare(b.number);
+    });
 
   const clearAll = () => {
     setSearch('');
