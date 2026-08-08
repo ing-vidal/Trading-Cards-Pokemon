@@ -636,8 +636,22 @@ export default function CardsAdminPage() {
         incoloro: 'Incolora',
         incolora: 'Incolora',
       };
+      const energyIdFallbacks: Record<string, string> = {
+        agua: 'ccd8a9da-a69f-403c-bed9-235d72ca7ace',
+        dragon: 'b39d7fb8-9d12-4a21-ba73-d705e9ef075d',
+        electrico: '9103fa55-2e6c-4ee0-934d-951d2cb946f6',
+        fuego: '4ee26bc5-b1cd-46f4-a0ec-c5e49b57f301',
+        incolora: '13500355-8b76-46ce-b874-362acda803ec',
+        lucha: 'd5b9b452-2261-40a3-9672-475f8a76c5c8',
+        metalico: '2bbc78af-c003-4820-9b66-ca44a82a6e5b',
+        oscura: '5cc929c6-b2a4-4251-b437-3aacf4bd39fc',
+        planta: '78005a0e-7bc4-4c16-b66f-52702882de8d',
+        psiquico: '3a9afc3b-604e-49f2-8392-f3f8596767bc',
+      };
       const normalized = String(value).trim().toLowerCase();
-      return resolveOptionId(energyAliases[normalized] || value, energyTypesForImport);
+      const canonicalName = energyAliases[normalized] || value;
+      return resolveOptionId(canonicalName, energyTypesForImport)
+        || energyIdFallbacks[normalizeValue(canonicalName) || normalized];
     };
 
     const imageFiles = importImageFiles;
