@@ -40,11 +40,11 @@ const RARITY_LIGHTS: Record<string, { ambient: number; d1Color: number; d1Intens
     d2Intensity: 0.7,
   },
   'immersive-rare': {
-    ambient: 0.72,
-    d1Color: 0xf6e7ff,
-    d1Intensity: 1.7,
-    d2Color: 0x62d7ff,
-    d2Intensity: 0.9,
+    ambient: 0.62,
+    d1Color: 0xfff6df,
+    d1Intensity: 1.95,
+    d2Color: 0x7ddcff,
+    d2Intensity: 1.05,
   },
   'promo-glow': {
     ambient: 0.6,
@@ -231,14 +231,16 @@ export function Card3DCanvas({
     // 6. Pointer Tilt + Mouse uniform
     let targetRotX = 0;
     let targetRotY = 0;
+    let targetRotZ = 0;
 
     const handleMouseMove = (e: MouseEvent) => {
       const rect = container.getBoundingClientRect();
       const x = ((e.clientX - rect.left) / rect.width)  * 2 - 1;
       const y = -(((e.clientY - rect.top)  / rect.height) * 2 - 1);
 
-      targetRotY = x * 0.5;
-      targetRotX = -y * 0.5;
+      targetRotY = x * 0.42;
+      targetRotX = -y * 0.32;
+      targetRotZ = -x * 0.055;
 
       // Pass normalized mouse position to shader
       if (materialRef.current) {
@@ -249,6 +251,7 @@ export function Card3DCanvas({
     const handleMouseLeave = () => {
       targetRotX = 0;
       targetRotY = 0;
+      targetRotZ = 0;
       if (materialRef.current) {
         materialRef.current.uniforms.uMousePos.value.set(0, 0);
       }
@@ -272,6 +275,7 @@ export function Card3DCanvas({
       if (cardMeshRef.current) {
         cardMeshRef.current.rotation.x = THREE.MathUtils.lerp(cardMeshRef.current.rotation.x, targetRotX, 0.1);
         cardMeshRef.current.rotation.y = THREE.MathUtils.lerp(cardMeshRef.current.rotation.y, targetRotY, 0.1);
+        cardMeshRef.current.rotation.z = THREE.MathUtils.lerp(cardMeshRef.current.rotation.z, targetRotZ, 0.1);
       }
 
       controls.update();

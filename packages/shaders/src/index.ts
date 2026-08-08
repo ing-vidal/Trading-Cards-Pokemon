@@ -650,7 +650,7 @@ export const IMMERSIVE_RARE_PRESET: ShaderPreset = {
       return 0.5 + 0.5 * cos(6.28318 * (value + vec3(0.0, 0.33, 0.67)));
     }
 
-    float sparkle(vec2 uv, vec2 cellScale, float threshold) {
+    float sparkle(vec2 uv, vec2 cellScale, float threshold, float angle) {
       vec2 cell = floor(uv * cellScale);
       float seed = hash(cell);
       vec2 local = fract(uv * cellScale) - 0.5;
@@ -658,7 +658,7 @@ export const IMMERSIVE_RARE_PRESET: ShaderPreset = {
         (1.0 - smoothstep(0.0, 0.035, abs(local.x))) * (1.0 - smoothstep(0.08, 0.5, abs(local.y))),
         (1.0 - smoothstep(0.0, 0.035, abs(local.y))) * (1.0 - smoothstep(0.08, 0.5, abs(local.x)))
       );
-      float visibility = step(threshold, seed) * (0.65 + 0.35 * sin(uTime * 1.8 + seed * 30.0));
+      float visibility = step(threshold, seed) * smoothstep(0.25, 0.95, sin(angle + seed * 30.0) * 0.5 + 0.5);
       return crossShape * visibility;
     }
 
@@ -666,7 +666,8 @@ export const IMMERSIVE_RARE_PRESET: ShaderPreset = {
       vec3 viewDir = normalize(vViewPosition);
       float facing = max(dot(vNormal, viewDir), 0.0);
       float fresnel = pow(1.0 - facing, 2.2);
-      vec2 tilt = uMousePos * vec2(0.024, 0.018);
+      vec2 tilt = uMousePos * vec2(0.045, 0.032);
+      float angle = dot(uMousePos, vec2(1.35, 0.95));
 
       // Separate the artwork into soft depth bands so the illustration shifts with the card.
       float depth = smoothstep(0.12, 0.88, vUv.y) * 0.65 + 0.35;
@@ -677,22 +678,26 @@ export const IMMERSIVE_RARE_PRESET: ShaderPreset = {
       vec3 blueLayer = texture2D(tDiffuse, clamp(vUv + parallax - chroma, 0.0, 1.0)).rgb;
       vec3 col = vec3(redLayer.r, greenLayer.g, blueLayer.b);
 
-      // A slow diagonal light sweep keeps the surface alive without hiding the artwork.
-      float diagonal = dot(vUv - 0.5, vec2(0.78, 0.62)) + uTime * 0.075 + dot(uMousePos, vec2(0.08));
-      float sweep = exp(-pow((sin(diagonal * 3.14159) * 0.5 + 0.5 - 0.5) * 8.0, 2.0));
-      vec3 prism = spectrum(diagonal * 0.42 + facing * 0.25);
-      col += prism * sweep * (0.16 + fresnel * 0.3) * uIntensity;
+      float diagonal = dot(vUv - 0.5, vec2(0.78, 0.62));
+      float sweepCenter = angle * 0.18;
+      float sweep = exp(-pow((diagonal - sweepCenter) * 8.5, 2.0));
+      vec3 prism = spectrum(diagonal * 0.55 + angle * 0.22 + facing * 0.25);
+      col += prism * sweep * (0.3 + fresnel * 0.55) * uIntensity;
+      col += vec3(1.0, 0.98, 0.9) * pow(sweep, 3.0) * 0.22 * uIntensity;
 
-      // Inner framing and a restrained glass-like edge highlight.
+      float upperArt = smoothstep(0.34, 0.58, vUv.y);
+      float holoMist = 0.5 + 0.5 * sin(vUv.x * 18.0 + sin(vUv.y * 13.0 + angle) * 2.2);
+      col += vec3(0.68, 0.86, 0.9) * holoMist * upperArt * 0.12 * uIntensity;
+
       float edge = min(min(vUv.x, 1.0 - vUv.x), min(vUv.y, 1.0 - vUv.y));
       float frame = smoothstep(0.075, 0.018, edge) - smoothstep(0.018, 0.006, edge);
       float rim = smoothstep(0.11, 0.0, edge) * (0.45 + fresnel * 1.2);
-      col += spectrum(vUv.x * 0.35 + uTime * 0.04) * frame * 0.55 * uIntensity;
+      col += spectrum((vUv.x + vUv.y) * 0.72 + angle * 0.2) * frame * 0.95 * uIntensity;
       col += vec3(0.75, 0.92, 1.0) * rim * 0.28 * uIntensity;
 
-      float stars = sparkle(vUv + uMousePos * 0.08, vec2(18.0, 25.0), 0.94);
-      stars += sparkle(vUv - uMousePos * 0.05, vec2(37.0, 52.0), 0.975) * 0.55;
-      col += vec3(1.0, 0.96, 0.86) * stars * (0.4 + fresnel) * uIntensity;
+      float stars = sparkle(vUv + uMousePos * 0.08, vec2(18.0, 25.0), 0.9, angle);
+      stars += sparkle(vUv - uMousePos * 0.05, vec2(37.0, 52.0), 0.96, angle + 1.7) * 0.55;
+      col += spectrum(vUv.x * 0.8 + angle * 0.25) * stars * upperArt * (0.9 + fresnel) * uIntensity;
 
       col = mix(col, col * (0.82 + prism * 0.32), fresnel * uIntensity * 0.55);
       vec4 base = texture2D(tDiffuse, vUv);
