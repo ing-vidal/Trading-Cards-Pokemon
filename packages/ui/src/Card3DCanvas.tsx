@@ -211,6 +211,7 @@ export function Card3DCanvas({
       uniforms: {
         uTime:      { value: 0 },
         uIntensity: { value: intensity },
+        uDoubleIntensity: { value: presetId === 'double-immersive-rare' ? 1 : 0 },
         uMousePos:  { value: new THREE.Vector2(0, 0) },
         tDiffuse:   { value: initialTexture },
       },
@@ -238,9 +239,10 @@ export function Card3DCanvas({
       const x = ((e.clientX - rect.left) / rect.width)  * 2 - 1;
       const y = -(((e.clientY - rect.top)  / rect.height) * 2 - 1);
 
-      targetRotY = x * 0.42;
-      targetRotX = -y * 0.32;
-      targetRotZ = -x * 0.055;
+      const doubleImmersive = presetId === 'double-immersive-rare';
+      targetRotY = x * (doubleImmersive ? 0.52 : 0.42);
+      targetRotX = -y * (doubleImmersive ? 0.38 : 0.32);
+      targetRotZ = -x * (doubleImmersive ? 0.085 : 0.055);
 
       // Pass normalized mouse position to shader
       if (materialRef.current) {

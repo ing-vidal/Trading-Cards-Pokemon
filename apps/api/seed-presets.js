@@ -48,6 +48,14 @@ async function main() {
       intensity: 85,
     },
     {
+      id: 'preset-double-immersive-001',
+      name: 'Double Immersive Starburst Foil',
+      shader: 'double-immersive-rare',
+      material: 'DoubleImmersiveStarburstMaterial',
+      foil: 'intense-prismatic-depth',
+      intensity: 95,
+    },
+    {
       id: 'preset-promo-glow-001',
       name: 'Promotional Edge Glow',
       shader: 'promo-glow',
@@ -78,7 +86,7 @@ async function main() {
     { name: '2-Star Secret Rare', presetId: 'preset-glass-shatter-001' },
     { name: 'Secret Rare', presetId: 'preset-glass-shatter-001' },
     { name: 'Immersive Rare', presetId: 'preset-immersive-rare-001' },
-    { name: 'Double Immersive', presetId: 'preset-immersive-rare-001' },
+    { name: 'Double Immersive', presetId: 'preset-double-immersive-001' },
     { name: 'Gold Ultra Rare', presetId: 'preset-gold-relic-001' },
     { name: 'Rainbow Hyper Rare', presetId: 'preset-rainbow-hyper-001' },
     { name: 'Promotional', presetId: 'preset-promo-glow-001' },

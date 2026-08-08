@@ -29,6 +29,7 @@ export const BASIC_FOIL_PRESET: ShaderPreset = {
     uniform sampler2D tDiffuse;
     uniform float uTime;
     uniform float uIntensity;
+    uniform float uDoubleIntensity;
     uniform vec2 uMousePos;
     varying vec2 vUv;
     varying vec3 vNormal;
@@ -668,6 +669,7 @@ export const IMMERSIVE_RARE_PRESET: ShaderPreset = {
       float fresnel = pow(1.0 - facing, 2.2);
       vec2 tilt = uMousePos * vec2(0.045, 0.032);
       float angle = dot(uMousePos, vec2(1.35, 0.95));
+      float doubleBoost = 1.0 + uDoubleIntensity;
 
       // Separate the artwork into soft depth bands so the illustration shifts with the card.
       float depth = smoothstep(0.12, 0.88, vUv.y) * 0.65 + 0.35;
@@ -682,22 +684,23 @@ export const IMMERSIVE_RARE_PRESET: ShaderPreset = {
       float sweepCenter = angle * 0.18;
       float sweep = exp(-pow((diagonal - sweepCenter) * 8.5, 2.0));
       vec3 prism = spectrum(diagonal * 0.55 + angle * 0.22 + facing * 0.25);
-      col += prism * sweep * (0.3 + fresnel * 0.55) * uIntensity;
-      col += vec3(1.0, 0.98, 0.9) * pow(sweep, 3.0) * 0.22 * uIntensity;
+      col += prism * sweep * (0.3 + fresnel * 0.55) * uIntensity * doubleBoost;
+      col += vec3(1.0, 0.98, 0.9) * pow(sweep, 3.0) * 0.22 * uIntensity * doubleBoost;
 
       float upperArt = smoothstep(0.34, 0.58, vUv.y);
       float holoMist = 0.5 + 0.5 * sin(vUv.x * 18.0 + sin(vUv.y * 13.0 + angle) * 2.2);
-      col += vec3(0.68, 0.86, 0.9) * holoMist * upperArt * 0.12 * uIntensity;
+      col += vec3(0.68, 0.86, 0.9) * holoMist * upperArt * 0.12 * uIntensity * doubleBoost;
 
       float edge = min(min(vUv.x, 1.0 - vUv.x), min(vUv.y, 1.0 - vUv.y));
       float frame = smoothstep(0.075, 0.018, edge) - smoothstep(0.018, 0.006, edge);
       float rim = smoothstep(0.11, 0.0, edge) * (0.45 + fresnel * 1.2);
-      col += spectrum((vUv.x + vUv.y) * 0.72 + angle * 0.2) * frame * 0.95 * uIntensity;
+      col += spectrum((vUv.x + vUv.y) * 0.72 + angle * 0.2) * frame * 0.95 * uIntensity * doubleBoost;
       col += vec3(0.75, 0.92, 1.0) * rim * 0.28 * uIntensity;
 
-      float stars = sparkle(vUv + uMousePos * 0.08, vec2(18.0, 25.0), 0.9, angle);
-      stars += sparkle(vUv - uMousePos * 0.05, vec2(37.0, 52.0), 0.96, angle + 1.7) * 0.55;
-      col += spectrum(vUv.x * 0.8 + angle * 0.25) * stars * upperArt * (0.9 + fresnel) * uIntensity;
+      float stars = sparkle(vUv + uMousePos * 0.08, vec2(18.0, 25.0), 0.9 - uDoubleIntensity * 0.05, angle);
+      stars += sparkle(vUv - uMousePos * 0.05, vec2(37.0, 52.0), 0.96 - uDoubleIntensity * 0.04, angle + 1.7) * 0.55;
+      col += spectrum(vUv.x * 0.8 + angle * 0.25) * stars * upperArt * (0.9 + fresnel) * uIntensity * doubleBoost;
+      col += vec3(1.0) * pow(stars, 2.0) * upperArt * 0.35 * uDoubleIntensity;
 
       col = mix(col, col * (0.82 + prism * 0.32), fresnel * uIntensity * 0.55);
       vec4 base = texture2D(tDiffuse, vUv);
@@ -707,7 +710,20 @@ export const IMMERSIVE_RARE_PRESET: ShaderPreset = {
   uniformsDefaults: {
     uTime: 0,
     uIntensity: 0.9,
+    uDoubleIntensity: 0,
     uMousePos: [0, 0],
+  },
+};
+
+export const DOUBLE_IMMERSIVE_RARE_PRESET: ShaderPreset = {
+  ...IMMERSIVE_RARE_PRESET,
+  id: 'double-immersive-rare',
+  name: 'Double Immersive Starburst Foil',
+  description:
+    'Holofoil inmersivo de doble capa con marco arcoíris intenso, barrido diagonal y destellos estelares concentrados.',
+  uniformsDefaults: {
+    ...IMMERSIVE_RARE_PRESET.uniformsDefaults,
+    uDoubleIntensity: 1,
   },
 };
 
@@ -1051,6 +1067,7 @@ export const ALL_PRESETS: ShaderPreset[] = [
   RAINBOW_HYPER_PRESET,
   GOLD_RELIC_PRESET,
   IMMERSIVE_RARE_PRESET,
+  DOUBLE_IMMERSIVE_RARE_PRESET,
   GLASS_SHATTER_PRESET,
   PROMO_GLOW_PRESET,
   SPECIAL_ART_PRESET,
