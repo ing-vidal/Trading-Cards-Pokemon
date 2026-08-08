@@ -66,6 +66,8 @@ export default function CardsAdminPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   // Import/Export state
   const excelFileRef = useRef<HTMLInputElement | null>(null);
+  const imageFolderRef = useRef<HTMLInputElement | null>(null);
+  const [importImageFiles, setImportImageFiles] = useState<File[]>([]);
 
   const normalizeValue = (value: string | undefined) => {
     if (!value) return undefined;
@@ -531,6 +533,10 @@ export default function CardsAdminPage() {
     excelFileRef.current?.click();
   };
 
+  const handleImageFolderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setImportImageFiles(Array.from(e.target.files || []));
+  };
+
   const handleExcelFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -614,7 +620,7 @@ export default function CardsAdminPage() {
       return resolveOptionId(energyAliases[normalized] || value, availableEnergyTypes);
     };
 
-    const imageFiles: File[] = [];
+    const imageFiles = importImageFiles;
 
     const normalizeImageFilename = (filename: string) => {
       let imageFilename = filename.trim();
@@ -699,8 +705,8 @@ export default function CardsAdminPage() {
 
       // normalize image filename: accept full Windows paths by extracting basename
       let imageFilenameNormalized: string | undefined = undefined;
-      if (r.imageFilename) {
-        imageFilenameNormalized = normalizeImageFilename(String(r.imageFilename));
+      if (r.imageFilename || r.number) {
+        imageFilenameNormalized = normalizeImageFilename(String(r.imageFilename || r.number));
       }
 
       // Upload image if provided and matched in selected folder
@@ -750,10 +756,11 @@ export default function CardsAdminPage() {
       }
 
       try {
-        // If id exists update, else create
+        // Update by id or collection number when the Excel id is empty; otherwise create.
         let res: Response | null = null;
-        if (r.id) {
-          res = await fetch(`${API_BASE_URL}/api/cards/${r.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const existingCardId = r.id || cards.find((card) => card.number === String(r.number))?.id;
+        if (existingCardId) {
+          res = await fetch(`${API_BASE_URL}/api/cards/${existingCardId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         } else {
           res = await fetch(`${API_BASE_URL}/api/cards`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         }
@@ -892,6 +899,33 @@ export default function CardsAdminPage() {
           >
             ⤒ Importar Excel/CSV
           </button>
+
+          <button
+            onClick={() => imageFolderRef.current?.click()}
+            style={{
+              backgroundColor: '#047857',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '10px',
+              padding: '0.65rem 1rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              fontSize: '0.86rem',
+            }}
+          >
+            📁 {importImageFiles.length > 0 ? `${importImageFiles.length} imágenes` : 'Seleccionar imágenes'}
+          </button>
+
+          <input
+            ref={imageFolderRef}
+            type="file"
+            accept="image/*"
+            multiple
+            // @ts-ignore webkitdirectory is supported by Chromium-based browsers.
+            webkitdirectory=""
+            style={{ display: 'none' }}
+            onChange={handleImageFolderChange}
+          />
 
           <select
             value={catalogDeleteCollection}
