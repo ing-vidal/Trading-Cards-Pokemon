@@ -752,15 +752,16 @@ export default function CardsAdminPage() {
 
       // normalize image filename: accept full Windows paths by extracting basename
       let imageFilenameNormalized: string | undefined = undefined;
+      let matchedImage: File | undefined;
       if (r.imageFilename || r.number) {
         imageFilenameNormalized = normalizeImageFilename(String(r.imageFilename || r.number));
       }
 
-      // Upload image if provided and matched in selected folder
+      // Match the local image now; upload it only after the card has an ID.
       if (imageFilenameNormalized && imageFiles.length > 0) {
         const normalizedImageFilename = imageFilenameNormalized.toLowerCase();
         const normalizedImageFilenameNoExt = stripExtension(normalizedImageFilename);
-        const match = imageFiles.find((f) => {
+        matchedImage = imageFiles.find((f) => {
           const fileNameLower = f.name.toLowerCase();
           const fileBaseNameNoExt = stripExtension(fileNameLower);
           const relativePathLower = String((f as any).webkitRelativePath || '').toLowerCase();
@@ -771,27 +772,7 @@ export default function CardsAdminPage() {
             relativePathLower.endsWith(normalizedImageFilenameNoExt)
           );
         });
-        if (match) {
-          try {
-            const form = new FormData();
-            form.append('file', match);
-            form.append('name', match.name);
-            form.append('type', 'IMAGE');
-            // @ts-ignore assume admin has auth cookie/session
-            const up = await fetch(`${API_BASE_URL}/api/assets/upload`, { method: 'POST', body: form });
-            if (up.ok) {
-              const asset = await up.json();
-              payload.imageUrl = asset.url;
-            } else {
-              const text = await up.text();
-              console.warn('Image upload returned non-ok', text);
-              errors.push({ rowIndex: rowIndex + 1, row: r, error: `Image upload error: ${text}` });
-            }
-          } catch (err) {
-            console.warn('Image upload failed for', imageFilenameNormalized, err);
-            errors.push({ rowIndex: rowIndex + 1, row: r, error: `Image upload exception: ${String(err)}` });
-          }
-        } else {
+        if (!matchedImage) {
           console.warn('No image file match found for', imageFilenameNormalized, imageFiles.map((f) => ({ name: f.name, path: (f as any).webkitRelativePath })));
           // no local image match found; if the CSV provided a full http(s) url, use it
           if (r.imageFilename && String(r.imageFilename).startsWith('http')) {
@@ -819,6 +800,24 @@ export default function CardsAdminPage() {
           console.warn('Failed to create/update card from row (non-ok)', { rowIndex: rowIndex + 1, row: r, status: res ? res.status : null, body: text });
         } else {
           processed += 1;
+          const savedCard = await res.json();
+          const cardId = existingCardId || savedCard.id;
+          if (matchedImage && cardId) {
+            try {
+              const form = new FormData();
+              form.append('file', matchedImage);
+              form.append('name', matchedImage.name);
+              form.append('type', 'IMAGE');
+              form.append('cardId', cardId);
+              const upload = await fetch(`${API_BASE_URL}/api/assets/upload`, { method: 'POST', body: form });
+              if (!upload.ok) {
+                const text = await upload.text();
+                errors.push({ rowIndex: rowIndex + 1, row: r, error: `Image upload error: ${text}` });
+              }
+            } catch (error) {
+              errors.push({ rowIndex: rowIndex + 1, row: r, error: `Image upload exception: ${String(error)}` });
+            }
+          }
         }
       } catch (err) {
         failed += 1;

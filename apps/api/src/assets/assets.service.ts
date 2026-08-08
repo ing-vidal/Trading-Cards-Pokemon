@@ -22,6 +22,29 @@ export class AssetsService {
 
     const format = file.originalname.split('.').pop() || 'unknown';
 
+    if (dto.cardId) {
+      const existingAsset = await this.prisma.asset.findFirst({
+        where: { cardId: dto.cardId, type: AssetType.IMAGE },
+      });
+
+      if (existingAsset) {
+        if (existingAsset.path) {
+          await this.storage.deleteFile(existingAsset.path);
+        }
+        return this.prisma.asset.update({
+          where: { id: existingAsset.id },
+          data: {
+            name: dto.name || file.originalname,
+            url: fileResult.url,
+            path: fileResult.relativePath,
+            size: file.size,
+            format: format.toLowerCase(),
+          },
+          include: { card: true },
+        });
+      }
+    }
+
     return this.prisma.asset.create({
       data: {
         name: dto.name || file.originalname,
