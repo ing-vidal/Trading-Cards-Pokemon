@@ -553,25 +553,38 @@ export default function CardsAdminPage() {
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
     const sheetRows = XLSX.utils.sheet_to_json<any>(sheet);
+    let collectionsForImport = availableCollections;
+    let raritiesForImport = availableRarities;
     let energyTypesForImport = availableEnergyTypes;
-    if (energyTypesForImport.length === 0) {
-      try {
-        const energyResponse = await fetch(`${API_BASE_URL}/api/energy-types`);
-        if (energyResponse.ok) {
-          const energyJson = await energyResponse.json();
-          if (Array.isArray(energyJson)) {
-            energyTypesForImport = energyJson.map((energy: any) => ({
-              id: energy.id,
-              name: energy.name,
-              icon: energy.icon,
-              color: energy.color,
-            }));
-            setAvailableEnergyTypes(energyTypesForImport);
-          }
+    try {
+      const [collectionsResponse, raritiesResponse, energyResponse] = await Promise.all([
+        fetch(`${API_BASE_URL}/api/collections`),
+        fetch(`${API_BASE_URL}/api/rarities`),
+        fetch(`${API_BASE_URL}/api/energy-types`),
+      ]);
+      if (collectionsResponse.ok) {
+        const json = await collectionsResponse.json();
+        if (Array.isArray(json) && json.length > 0) {
+          collectionsForImport = json.map((collection: any) => ({ id: collection.id, name: collection.name, code: collection.code }));
+          setAvailableCollections(collectionsForImport);
         }
-      } catch (error) {
-        console.warn('Could not load energy types before import:', error);
       }
+      if (raritiesResponse.ok) {
+        const json = await raritiesResponse.json();
+        if (Array.isArray(json) && json.length > 0) {
+          raritiesForImport = json.map((rarity: any) => ({ id: rarity.id, name: rarity.name, color: rarity.color || '#a855f7', shader: rarity.preset?.shader || 'basic-foil' }));
+          setAvailableRarities(raritiesForImport);
+        }
+      }
+      if (energyResponse.ok) {
+        const json = await energyResponse.json();
+        if (Array.isArray(json) && json.length > 0) {
+          energyTypesForImport = json.map((energy: any) => ({ id: energy.id, name: energy.name, icon: energy.icon, color: energy.color }));
+          setAvailableEnergyTypes(energyTypesForImport);
+        }
+      }
+    } catch (error) {
+      console.warn('Could not refresh catalog options before import:', error);
     }
 
     const normalizeKey = (key: any) =>
@@ -696,8 +709,8 @@ export default function CardsAdminPage() {
       const payload: any = {
         name: String(r.name),
         number: String(r.number),
-        collectionId: resolveOptionIdFromRow(r, ['collectionId', 'collection'], availableCollections),
-        rarityId: resolveOptionIdFromRow(r, ['rarityId', 'rarity'], availableRarities),
+        collectionId: resolveOptionIdFromRow(r, ['collectionId', 'collection'], collectionsForImport),
+        rarityId: resolveOptionIdFromRow(r, ['rarityId', 'rarity'], raritiesForImport),
         energyTypeId: resolveEnergyTypeIdFromRow(r),
         cardType: normalizeCardTypeValue(r.cardType || r.type || r.tipo || r.tipodecarta || r.tipocarta) || 'POKEMON',
         price: r.price !== undefined && r.price !== '' ? Number(r.price) : undefined,
