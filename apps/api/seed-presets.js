@@ -16,6 +16,14 @@ async function main() {
       intensity: 60,
     },
     {
+      id: 'preset-star-foil-001',
+      name: 'One Star Lightning Prism Foil',
+      shader: 'star-foil',
+      material: 'OneStarLightningMaterial',
+      foil: 'lightning-prism',
+      intensity: 85,
+    },
+    {
       id: 'preset-rainbow-hyper-001',
       name: 'Rainbow Hyper Rare',
       shader: 'rainbow-hyper',
@@ -90,7 +98,7 @@ async function main() {
 
   // 2. Link each rarity to its correct shader preset
   const rarityPresetMap = [
-    { name: '1-Star Rare', presetId: 'preset-holo-base-001' },
+    { name: '1-Star Rare', presetId: 'preset-star-foil-001' },
     { name: '2-Star Secret Rare', presetId: 'preset-glass-shatter-001' },
     { name: 'Secret Rare', presetId: 'preset-glass-shatter-001' },
     { name: 'Immersive Rare', presetId: 'preset-immersive-rare-001' },

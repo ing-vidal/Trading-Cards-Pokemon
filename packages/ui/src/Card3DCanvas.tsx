@@ -89,11 +89,11 @@ const RARITY_LIGHTS: Record<string, { ambient: number; d1Color: number; d1Intens
     d2Intensity: 0.85,
   },
   'star-foil': {
-    ambient: 0.84,
-    d1Color: 0xf8f7ff,
-    d1Intensity: 1.7,
-    d2Color: 0x77e8d5,
-    d2Intensity: 0.72,
+    ambient: 0.86,
+    d1Color: 0xffffe0,
+    d1Intensity: 1.9,
+    d2Color: 0x72e8df,
+    d2Intensity: 0.9,
   },
   'two-star-foil': {
     ambient: 0.82,
@@ -242,9 +242,10 @@ export function Card3DCanvas({
       const doubleImmersive = presetId === 'double-immersive-rare';
       const promo = presetId === 'promo-glow';
       const twoStar = presetId === 'two-star-foil';
-      targetRotY = x * (doubleImmersive ? 0.52 : promo ? 0.48 : twoStar ? 0.46 : 0.42);
-      targetRotX = -y * (doubleImmersive ? 0.38 : promo ? 0.36 : twoStar ? 0.3 : 0.32);
-      targetRotZ = -x * (doubleImmersive ? 0.085 : promo ? 0.07 : twoStar ? 0.045 : 0.055);
+      const oneStar = presetId === 'star-foil';
+      targetRotY = x * (doubleImmersive ? 0.52 : promo ? 0.48 : twoStar ? 0.46 : oneStar ? 0.4 : 0.42);
+      targetRotX = -y * (doubleImmersive ? 0.38 : promo ? 0.36 : twoStar ? 0.3 : oneStar ? 0.28 : 0.32);
+      targetRotZ = -x * (doubleImmersive ? 0.085 : promo ? 0.07 : twoStar ? 0.045 : oneStar ? 0.05 : 0.055);
 
       // Pass normalized mouse position to shader
       if (materialRef.current) {

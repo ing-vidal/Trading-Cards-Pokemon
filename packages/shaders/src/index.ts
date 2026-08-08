@@ -222,8 +222,8 @@ export const DOUBLE_RARE_FOIL_PRESET: ShaderPreset = {
 // ─── ONE STAR FOIL ───────────────────────────────────────────────────────────
 export const ONE_STAR_FOIL_PRESET: ShaderPreset = {
   id: 'star-foil',
-  name: 'One Star Galaxy Foil',
-  description: 'Marco galáctico nacarado con ondas curvas multicolor, estrellas suaves y borde prismático.',
+  name: 'One Star Lightning Prism Foil',
+  description: 'Foil dorado con relámpagos blancos, marco ondulado multicolor y brillo nacarado cyan.',
   vertexShader: `
     varying vec2 vUv;
     varying vec3 vNormal;
@@ -261,28 +261,38 @@ export const ONE_STAR_FOIL_PRESET: ShaderPreset = {
       float fresnel = pow(1.0 - facing, 1.8);
 
       vec2 centered = vUv - 0.5;
-      float border = smoothstep(0.34, 0.47, max(abs(centered.x), abs(centered.y)));
-      float innerBorder = smoothstep(0.27, 0.42, max(abs(centered.x), abs(centered.y)));
-      float waveA = sin(vUv.x * 34.0 + sin(vUv.y * 11.0 + uTime * 0.42) * 4.0 - uTime * 0.65) * 0.5 + 0.5;
-      float waveB = sin(vUv.y * 29.0 + cos(vUv.x * 14.0 - uTime * 0.35) * 5.0 + uTime * 0.48) * 0.5 + 0.5;
-      float waves = pow(waveA * waveB, 1.35);
-      vec3 galaxy = galaxyColor(vUv.x * 0.72 + vUv.y * 0.36 + uTime * 0.018 + waves * 0.12);
+      float angle = dot(uMousePos, vec2(1.15, 0.72));
+      float motion = uTime * 0.16 + angle * 0.35;
+      float borderEdge = min(min(vUv.x, 1.0 - vUv.x), min(vUv.y, 1.0 - vUv.y));
+      float border = smoothstep(0.105, 0.018, borderEdge);
+      float innerBorder = smoothstep(0.075, 0.018, borderEdge);
+      float waveA = sin(vUv.x * 38.0 + sin(vUv.y * 12.0 + motion) * 4.5 - motion * 2.0) * 0.5 + 0.5;
+      float waveB = sin(vUv.y * 32.0 + cos(vUv.x * 15.0 - motion) * 5.0 + motion * 1.4) * 0.5 + 0.5;
+      float waves = pow(waveA * waveB, 1.1);
+      vec3 galaxy = galaxyColor((vUv.x + vUv.y) * 0.62 + waves * 0.18 + angle * 0.12);
+
+      // Fine branching lightning visible through the warm artwork.
+      float boltA = abs(sin(vUv.x * 42.0 + sin(vUv.y * 18.0 + motion) * 3.0 + motion));
+      float boltB = abs(sin(vUv.y * 34.0 + cos(vUv.x * 21.0 - motion) * 2.5 - motion * 0.8));
+      float lightning = pow(1.0 - min(boltA, boltB), 18.0);
+      float warmArea = smoothstep(0.18, 0.82, vUv.y);
 
       vec2 sparkleGrid = floor(vUv * vec2(46.0, 64.0));
       float randomSpark = hash(sparkleGrid);
-      float sparkle = step(0.988, randomSpark) * pow(facing, 3.0);
-      sparkle *= 0.6 + 0.4 * sin(uTime * 2.8 + randomSpark * 17.0);
+      float sparkle = step(0.982, randomSpark) * pow(facing, 3.0);
+      sparkle *= 0.7 + 0.3 * sin(motion * 4.0 + randomSpark * 17.0);
       float edgeFacing = 1.0 - abs(vNormal.z);
       float edgeReflection = pow(edgeFacing, 1.25) * (0.35 + 0.65 * facing);
-      vec3 edgeColor = galaxyColor(dot(vNormal.xy, vec2(0.75, 0.65)) + uTime * 0.1);
+      vec3 edgeColor = galaxyColor((vUv.x * 0.8 + vUv.y * 0.55) + angle * 0.16);
       float mouseHighlight = exp(-20.0 * distance(vUv, uMousePos * 0.18 + 0.5));
 
       vec3 finalColor = baseColor.rgb;
-      finalColor = mix(finalColor, finalColor * (0.88 + galaxy * 0.28), fresnel * uIntensity * 0.55);
-      finalColor += galaxy * waves * border * uIntensity * 0.7;
-      finalColor += galaxy * innerBorder * border * uIntensity * 0.22;
-      finalColor += vec3(1.0) * (sparkle * 0.46 + mouseHighlight * 0.12) * uIntensity;
-      finalColor += edgeColor * edgeReflection * uIntensity * 0.85;
+      finalColor = mix(finalColor, finalColor * (vec3(1.08, 0.86, 0.34) + galaxy * 0.22), (0.28 + fresnel * 0.35) * uIntensity * warmArea);
+      finalColor += galaxy * waves * border * uIntensity * 0.95;
+      finalColor += galaxy * innerBorder * uIntensity * 0.35;
+      finalColor += vec3(1.0, 0.96, 0.72) * lightning * (0.3 + warmArea * 0.7) * uIntensity * 0.95;
+      finalColor += vec3(1.0) * (sparkle * 0.7 + mouseHighlight * 0.12) * uIntensity;
+      finalColor += edgeColor * edgeReflection * uIntensity * 1.0;
 
       gl_FragColor = vec4(finalColor, baseColor.a);
     }
