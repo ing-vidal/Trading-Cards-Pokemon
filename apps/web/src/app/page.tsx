@@ -325,7 +325,10 @@ export default function PublicHomePage() {
             category: c.category?.name || 'Pokémon',
             price: c.products?.[0]?.price ? Number(c.products[0].price) : 49.99,
             color: c.rarity?.color || '#a855f7',
-            imageUrl: c.assets?.[0]?.url || c.imageUrl,
+            imageUrl: (c.assets?.[0]?.url || c.imageUrl || '').replace(
+              'https://tcgvision-api.onrender.com',
+              'https://trading-cards-pokemon.onrender.com',
+            ) || undefined,
           }));
         }
       } catch (e) { console.warn('Cards fetch error', e); }

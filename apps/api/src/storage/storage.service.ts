@@ -21,7 +21,8 @@ export class StorageService implements OnModuleInit {
 
     await fs.promises.writeFile(filePath, file.buffer);
     const relativePath = `/uploads/${filename}`;
-    const baseUrl = process.env.API_URL || process.env.WEB_URL || 'https://trading-cards-pokemon.onrender.com';
+    const configuredBaseUrl = process.env.API_URL || 'https://trading-cards-pokemon.onrender.com';
+    const baseUrl = configuredBaseUrl.replace('tcgvision-api.onrender.com', 'trading-cards-pokemon.onrender.com');
     const url = `${baseUrl}/uploads/${filename}`;
 
     this.logger.log(`Archivo guardado exitosamente: ${filename} (${file.size} bytes)`);
