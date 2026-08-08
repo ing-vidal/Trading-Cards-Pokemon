@@ -32,6 +32,11 @@ export class CardsController {
     return this.cardsService.update(id, dto);
   }
 
+  @Delete('bulk')
+  async removeMany(@Query('collectionId') collectionId?: string) {
+    return this.cardsService.removeMany(collectionId);
+  }
+
   @Delete(':id')
   async remove(@Param('id') id: string) {
     return this.cardsService.remove(id);

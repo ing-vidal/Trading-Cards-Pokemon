@@ -47,6 +47,7 @@ export default function CardsAdminPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingCard, setEditingCard] = useState<CardItem | null>(null);
   const [deletingCard, setDeletingCard] = useState<CardItem | null>(null);
+  const [catalogDeleteCollection, setCatalogDeleteCollection] = useState('ALL');
 
   // Form State
   const [formData, setFormData] = useState({
@@ -445,6 +446,38 @@ export default function CardsAdminPage() {
     setIsSubmitting(false);
   };
 
+  const handleBulkDelete = async () => {
+    const selectedCollection = availableCollections.find((collection) => collection.id === catalogDeleteCollection);
+    const targetLabel = selectedCollection?.name || 'todo el catálogo';
+    const targetCards = catalogDeleteCollection === 'ALL'
+      ? cards
+      : cards.filter((card) => card.collectionId === catalogDeleteCollection);
+
+    if (targetCards.length === 0) {
+      window.alert('No hay cartas para eliminar en la selección indicada.');
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Vas a eliminar ${targetCards.length} carta(s) de ${targetLabel}. Esta acción no se puede deshacer. ¿Continuar?`
+    );
+    if (!confirmed) return;
+
+    setIsSubmitting(true);
+    try {
+      const query = catalogDeleteCollection === 'ALL' ? '' : `?collectionId=${encodeURIComponent(catalogDeleteCollection)}`;
+      const res = await fetch(`${API_BASE_URL}/api/cards/bulk${query}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error(`Bulk delete failed: ${res.status}`);
+      await fetchCardsFromApi();
+      setCurrentPage(1);
+    } catch (err) {
+      console.error('Could not empty catalog:', err);
+      window.alert('No se pudo vaciar el catálogo. No se eliminaron las cartas desde este panel.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const resetForm = () => {
     setFormData({
       name: '',
@@ -840,6 +873,47 @@ export default function CardsAdminPage() {
             }}
           >
             ⤒ Importar Excel/CSV
+          </button>
+
+          <select
+            value={catalogDeleteCollection}
+            onChange={(event) => setCatalogDeleteCollection(event.target.value)}
+            disabled={isSubmitting}
+            aria-label="Alcance del vaciado del catálogo"
+            style={{
+              backgroundColor: '#09090b',
+              border: '1px solid #7f1d1d',
+              borderRadius: '8px',
+              padding: '0.65rem 0.75rem',
+              color: '#fecaca',
+              fontSize: '0.82rem',
+              maxWidth: '190px',
+            }}
+          >
+            <option value="ALL">Todo el catálogo</option>
+            {availableCollections.map((collection) => (
+              <option key={collection.id} value={collection.id}>
+                {collection.name}
+              </option>
+            ))}
+          </select>
+
+          <button
+            onClick={handleBulkDelete}
+            disabled={isSubmitting || cards.length === 0}
+            style={{
+              backgroundColor: isSubmitting || cards.length === 0 ? '#3f1d1d' : '#dc2626',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '10px',
+              padding: '0.65rem 1rem',
+              fontWeight: 700,
+              cursor: isSubmitting || cards.length === 0 ? 'not-allowed' : 'pointer',
+              fontSize: '0.86rem',
+              opacity: isSubmitting || cards.length === 0 ? 0.65 : 1,
+            }}
+          >
+            {isSubmitting ? 'Vaciando...' : '🗑 Vaciar catálogo'}
           </button>
 
           <input ref={excelFileRef} type="file" accept=".xlsx,.xls,.csv" style={{ display: 'none' }} onChange={handleExcelFile} />

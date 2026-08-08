@@ -273,7 +273,7 @@ export default function PublicHomePage() {
         fetch(`${API_BASE_URL}/api/collections`),
         fetch(`${API_BASE_URL}/api/rarities`),
         fetch(`${API_BASE_URL}/api/energy-types`),
-        fetch(`${API_BASE_URL}/api/cards?limit=100`),
+        fetch(`${API_BASE_URL}/api/cards?limit=1000`),
       ]);
 
       try {

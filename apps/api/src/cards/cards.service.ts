@@ -277,4 +277,20 @@ export class CardsService {
     await this.prisma.card.delete({ where: { id } });
     return { message: 'Carta eliminada exitosamente' };
   }
+
+  async removeMany(collectionId?: string) {
+    const cards = await this.prisma.card.findMany({
+      where: collectionId ? { collectionId } : undefined,
+      select: { id: true },
+    });
+
+    for (const card of cards) {
+      await this.remove(card.id);
+    }
+
+    return {
+      message: collectionId ? 'Colección vaciada exitosamente' : 'Catálogo vaciado exitosamente',
+      deleted: cards.length,
+    };
+  }
 }
