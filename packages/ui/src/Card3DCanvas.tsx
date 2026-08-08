@@ -47,11 +47,11 @@ const RARITY_LIGHTS: Record<string, { ambient: number; d1Color: number; d1Intens
     d2Intensity: 1.05,
   },
   'promo-glow': {
-    ambient: 0.6,
-    d1Color: 0x00ffff,  // cyan
-    d1Intensity: 1.5,
-    d2Color: 0xff00ff,  // magenta
-    d2Intensity: 0.8,
+    ambient: 0.78,
+    d1Color: 0xffffff,
+    d1Intensity: 1.8,
+    d2Color: 0xff42c8,
+    d2Intensity: 1.0,
   },
   'special-art': {
     ambient: 0.5,
@@ -240,9 +240,10 @@ export function Card3DCanvas({
       const y = -(((e.clientY - rect.top)  / rect.height) * 2 - 1);
 
       const doubleImmersive = presetId === 'double-immersive-rare';
-      targetRotY = x * (doubleImmersive ? 0.52 : 0.42);
-      targetRotX = -y * (doubleImmersive ? 0.38 : 0.32);
-      targetRotZ = -x * (doubleImmersive ? 0.085 : 0.055);
+      const promo = presetId === 'promo-glow';
+      targetRotY = x * (doubleImmersive ? 0.52 : promo ? 0.48 : 0.42);
+      targetRotX = -y * (doubleImmersive ? 0.38 : promo ? 0.36 : 0.32);
+      targetRotZ = -x * (doubleImmersive ? 0.085 : promo ? 0.07 : 0.055);
 
       // Pass normalized mouse position to shader
       if (materialRef.current) {

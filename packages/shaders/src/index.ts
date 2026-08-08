@@ -811,7 +811,7 @@ export const GLASS_SHATTER_PRESET: ShaderPreset = {
 export const PROMO_GLOW_PRESET: ShaderPreset = {
   id: 'promo-glow',
   name: 'Promotional Energy Glow',
-  description: 'Aura neón pulsante en los bordes con efecto de energía eléctrica.',
+  description: 'Película holográfica promocional con trazos curvos cyan, magenta y azul y destellos blancos.',
   vertexShader: `
     varying vec2 vUv;
     varying vec3 vNormal;
@@ -839,32 +839,36 @@ export const PROMO_GLOW_PRESET: ShaderPreset = {
       vec3 viewDir = normalize(vViewPosition);
       float fresnel = pow(1.0 - max(dot(viewDir, vNormal), 0.0), 2.0);
 
-      // Distance to edge
+      float angle = dot(uMousePos, vec2(1.2, 0.85));
+      float motion = uTime * 0.18 + angle * 0.45;
+
+      // Soft holographic base that follows the card tilt.
       float distToEdge = min(min(vUv.x, 1.0 - vUv.x), min(vUv.y, 1.0 - vUv.y));
+      vec3 cyanNeon   = vec3(0.02, 0.72, 1.0);
+      vec3 magentaNeon = vec3(1.0, 0.02, 0.58);
+      vec3 blueNeon   = vec3(0.08, 0.32, 1.0);
+      float film = 0.5 + 0.5 * sin((vUv.x * 8.0 + vUv.y * 5.0 + motion) * 3.14159);
+      vec3 filmColor = mix(cyanNeon, magentaNeon, smoothstep(0.25, 0.75, film));
+      filmColor = mix(filmColor, blueNeon, smoothstep(0.72, 1.0, film));
+      vec3 col = base.rgb + filmColor * (0.06 + fresnel * 0.16) * uIntensity;
 
-      // Pulsing edge glow
-      float pulse  = 0.6 + 0.4 * sin(uTime * 3.0);
-      float pulse2 = 0.5 + 0.5 * sin(uTime * 1.7 + 1.5);
-      float glow   = smoothstep(0.12, 0.0, distToEdge) * pulse;
-      float glow2  = smoothstep(0.06, 0.0, distToEdge) * pulse2;
+      // Broad curved color strokes visible across the artwork.
+      float curveA = abs(sin(vUv.x * 7.0 + vUv.y * 4.0 + motion) - (vUv.y - 0.5) * 1.2);
+      float curveB = abs(sin(vUv.x * 5.0 - vUv.y * 8.0 - motion * 0.8) + (vUv.x - 0.5) * 1.4);
+      float strokeA = 1.0 - smoothstep(0.06, 0.13, curveA);
+      float strokeB = 1.0 - smoothstep(0.05, 0.11, curveB);
+      col += magentaNeon * strokeA * 0.38 * uIntensity;
+      col += cyanNeon * strokeB * 0.34 * uIntensity;
+      col += blueNeon * strokeA * strokeB * 0.22 * uIntensity;
 
-      // Electric arc noise on edge
-      float arc = sin(vUv.x * 40.0 + uTime * 8.0) * sin(vUv.y * 30.0 - uTime * 5.0);
-      arc = smoothstep(0.5, 1.0, arc) * smoothstep(0.08, 0.0, distToEdge);
+      // White pinprick highlights scattered over the moving foil.
+      float sparkleGrid = sin(vUv.x * 73.0 + motion * 2.0) * sin(vUv.y * 91.0 - motion);
+      float sparkles = smoothstep(0.94, 1.0, sparkleGrid) * (0.35 + fresnel);
+      col += vec3(1.0, 0.98, 0.94) * sparkles * 0.7 * uIntensity;
 
-      // Neon colors
-      vec3 cyanNeon   = vec3(0.1, 0.9, 1.0);
-      vec3 magentaNeon = vec3(0.9, 0.1, 1.0);
-      vec3 neonColor  = mix(cyanNeon, magentaNeon, 0.5 + 0.5 * sin(uTime * 1.0));
-
-      vec3 glowColor  = neonColor * glow  * uIntensity * 2.5;
-      vec3 glowColor2 = vec3(1.0, 1.0, 1.0) * glow2 * uIntensity * 1.5;
-      vec3 arcColor   = neonColor * arc * uIntensity * 3.0;
-
-      // Subtle body shimmer
-      vec3 bodyShimmer = neonColor * fresnel * uIntensity * 0.3;
-
-      vec3 col = base.rgb + glowColor + glowColor2 + arcColor + bodyShimmer;
+      // Thin luminous edge, kept as a frame rather than an electric aura.
+      float edgeGlow = smoothstep(0.09, 0.0, distToEdge) * (0.55 + fresnel);
+      col += mix(cyanNeon, magentaNeon, 0.5 + 0.5 * sin(angle)) * edgeGlow * 0.8 * uIntensity;
       gl_FragColor = vec4(col, base.a);
     }
   `,
