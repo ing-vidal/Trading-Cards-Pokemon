@@ -553,6 +553,26 @@ export default function CardsAdminPage() {
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
     const sheetRows = XLSX.utils.sheet_to_json<any>(sheet);
+    let energyTypesForImport = availableEnergyTypes;
+    if (energyTypesForImport.length === 0) {
+      try {
+        const energyResponse = await fetch(`${API_BASE_URL}/api/energy-types`);
+        if (energyResponse.ok) {
+          const energyJson = await energyResponse.json();
+          if (Array.isArray(energyJson)) {
+            energyTypesForImport = energyJson.map((energy: any) => ({
+              id: energy.id,
+              name: energy.name,
+              icon: energy.icon,
+              color: energy.color,
+            }));
+            setAvailableEnergyTypes(energyTypesForImport);
+          }
+        }
+      } catch (error) {
+        console.warn('Could not load energy types before import:', error);
+      }
+    }
 
     const normalizeKey = (key: any) =>
       key?.toString().trim().toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '');
@@ -617,7 +637,7 @@ export default function CardsAdminPage() {
         incolora: 'Incolora',
       };
       const normalized = String(value).trim().toLowerCase();
-      return resolveOptionId(energyAliases[normalized] || value, availableEnergyTypes);
+      return resolveOptionId(energyAliases[normalized] || value, energyTypesForImport);
     };
 
     const imageFiles = importImageFiles;
