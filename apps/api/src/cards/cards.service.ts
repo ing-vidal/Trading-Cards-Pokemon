@@ -279,18 +279,24 @@ export class CardsService {
   }
 
   async removeMany(collectionId?: string) {
-    const cards = await this.prisma.card.findMany({
-      where: collectionId ? { collectionId } : undefined,
-      select: { id: true },
-    });
+    const where = collectionId ? { collectionId } : undefined;
+    const result = await this.prisma.$transaction(async (transaction) => {
+      const cards = await transaction.card.findMany({ where, select: { id: true } });
+      const cardIds = cards.map((card) => card.id);
 
-    for (const card of cards) {
-      await this.remove(card.id);
-    }
+      if (cardIds.length > 0) {
+        await transaction.asset.deleteMany({ where: { cardId: { in: cardIds } } });
+        await transaction.product.deleteMany({ where: { cardId: { in: cardIds } } });
+        await transaction.cardEffect.deleteMany({ where: { cardId: { in: cardIds } } });
+        await transaction.card.deleteMany({ where: { id: { in: cardIds } } });
+      }
+
+      return cardIds.length;
+    });
 
     return {
       message: collectionId ? 'Colección vaciada exitosamente' : 'Catálogo vaciado exitosamente',
-      deleted: cards.length,
+      deleted: result,
     };
   }
 }

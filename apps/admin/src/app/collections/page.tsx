@@ -121,7 +121,7 @@ const getDeletedCollections = () => {
 };
 
 export default function CollectionsAdminPage() {
-  const [collections, setCollections] = useState<CollectionItem[]>(INITIAL_COLLECTIONS);
+  const [collections, setCollections] = useState<CollectionItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
 
   // Modals state
@@ -213,6 +213,8 @@ export default function CollectionsAdminPage() {
     if (visibleApiCollections.length > 0) {
       setCollections(visibleApiCollections);
       persistCollections(visibleApiCollections);
+    } else {
+      setCollections([]);
     }
   };
 
