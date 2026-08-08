@@ -596,6 +596,24 @@ export default function CardsAdminPage() {
       return aliasMap[normalized] || undefined;
     };
 
+    const resolveEnergyTypeIdFromRow = (row: any) => {
+      const value = row.energyTypeId || row.energyType;
+      if (!value) return undefined;
+      const energyAliases: Record<string, string> = {
+        rayo: 'Eléctrico',
+        electrico: 'Eléctrico',
+        eléctrica: 'Eléctrico',
+        electrica: 'Eléctrico',
+        metalica: 'Metálico',
+        metálica: 'Metálico',
+        metal: 'Metálico',
+        incoloro: 'Incolora',
+        incolora: 'Incolora',
+      };
+      const normalized = String(value).trim().toLowerCase();
+      return resolveOptionId(energyAliases[normalized] || value, availableEnergyTypes);
+    };
+
     const imageFiles: File[] = [];
 
     const normalizeImageFilename = (filename: string) => {
@@ -640,7 +658,7 @@ export default function CardsAdminPage() {
         number: String(r.number),
         collectionId: resolveOptionIdFromRow(r, ['collectionId', 'collection'], availableCollections),
         rarityId: resolveOptionIdFromRow(r, ['rarityId', 'rarity'], availableRarities),
-        energyTypeId: resolveOptionIdFromRow(r, ['energyTypeId', 'energyType'], availableEnergyTypes),
+        energyTypeId: resolveEnergyTypeIdFromRow(r),
         cardType: normalizeCardTypeValue(r.cardType || r.type || r.tipo || r.tipodecarta || r.tipocarta) || 'POKEMON',
         price: r.price !== undefined && r.price !== '' ? Number(r.price) : undefined,
         stock: r.stock !== undefined && r.stock !== '' ? Number(r.stock) : undefined,
