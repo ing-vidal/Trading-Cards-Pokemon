@@ -111,6 +111,7 @@ const OVERLAY_FRAG = /* glsl */`
   uniform float uAnimSpeed;
   uniform float uBloomThreshold;
   uniform float uParallaxDepth;
+  uniform float uCrownMode;
 
   varying vec2  vUv;
   varying vec3  vNormal;
@@ -303,6 +304,12 @@ const OVERLAY_FRAG = /* glsl */`
     vec3  specC = goldColor(0.8 + specH * 0.2) * specH * uClearcoat * 1.4;
     foiled += specC;
 
+    // Crown foil: bright horizontal gold bands concentrated above the artwork.
+    float crownArea = smoothstep(0.35, 0.72, vUv.y);
+    float crownBand = pow(0.5 + 0.5 * cos((vUv.y * 34.0 + vUv.x * 2.5 + uTiltY * 5.0) * 3.14159), 12.0);
+    vec3 crownGold = vec3(1.0, 0.72, 0.08);
+    foiled += crownGold * crownBand * crownArea * uCrownMode * 0.8;
+
     // ── L5 – Glitter ─────────────────────────────────────────────────────
     float glit = glitter(uvFoil, V, N, uGlitterDensity);
     foiled += goldColor(0.9) * glit * uGlitterDensity * 0.8;
@@ -339,7 +346,26 @@ export interface GoldCard3DCanvasProps {
   width?: string;
   height?: string;
   showEditor?: boolean;
+  variant?: 'gold' | 'crown';
 }
+
+const CROWN_PARAMS: GoldParams = {
+  ...DEFAULT_PARAMS,
+  goldIntensity: 1.35,
+  reflectionStr: 2.2,
+  specularWidth: 0.16,
+  sparkleDensity: 0.38,
+  sparkleSize: 0.8,
+  glitterDensity: 0.52,
+  glowIntensity: 0.9,
+  rainbowIntensity: 0.025,
+  fresnelPower: 2.8,
+  foilRoughness: 0.12,
+  metalness: 0.92,
+  animSpeed: 0.7,
+  bloomThreshold: 0.42,
+  parallaxDepth: 0.035,
+};
 
 export function GoldCard3DCanvas({
   imageUrl,
@@ -347,16 +373,18 @@ export function GoldCard3DCanvas({
   width = '100%',
   height = '520px',
   showEditor = false,
+  variant = 'gold',
 }: GoldCard3DCanvasProps) {
+  const initialParams = variant === 'crown' ? CROWN_PARAMS : DEFAULT_PARAMS;
   const containerRef = useRef<HTMLDivElement>(null);
-  const paramsRef = useRef<GoldParams>({ ...DEFAULT_PARAMS, goldIntensity: intensity * DEFAULT_PARAMS.goldIntensity });
+  const paramsRef = useRef<GoldParams>({ ...initialParams, goldIntensity: intensity * initialParams.goldIntensity });
   const materialRef = useRef<THREE.ShaderMaterial | null>(null);
   const physMatRef = useRef<THREE.MeshPhysicalMaterial | null>(null);
   const composerRef = useRef<EffectComposer | null>(null);
 
   // UI state for editor
   const [editorOpen, setEditorOpen] = useState(showEditor);
-  const [params, setParams] = useState<GoldParams>({ ...DEFAULT_PARAMS });
+  const [params, setParams] = useState<GoldParams>({ ...initialParams });
 
   // Update shader uniforms when params change
   const updateUniforms = useCallback((p: GoldParams) => {
@@ -539,6 +567,7 @@ export function GoldCard3DCanvas({
         uAnimSpeed:         { value: p.animSpeed },
         uBloomThreshold:    { value: p.bloomThreshold },
         uParallaxDepth:     { value: p.parallaxDepth },
+        uCrownMode:         { value: variant === 'crown' ? 1 : 0 },
       },
       transparent: true,
       depthWrite:  false,
@@ -572,15 +601,16 @@ export function GoldCard3DCanvas({
     controls.dampingFactor= 0.08;
 
     // ── Pointer tilt ──────────────────────────────────────────────────────────
-    let targetRX = 0, targetRY = 0;
+    let targetRX = 0, targetRY = 0, targetRZ = 0;
     const onMouseMove = (e: MouseEvent) => {
       const r = container.getBoundingClientRect();
       const x = ((e.clientX - r.left)  / r.width ) * 2 - 1;
       const y = -(((e.clientY - r.top) / r.height) * 2 - 1);
-      targetRY = x * 0.55;
-      targetRX = -y * 0.35;
+      targetRY = x * (variant === 'crown' ? 0.42 : 0.55);
+      targetRX = -y * (variant === 'crown' ? 0.24 : 0.35);
+      targetRZ = -x * (variant === 'crown' ? 0.06 : 0);
     };
-    const onMouseLeave = () => { targetRX = 0; targetRY = 0; };
+    const onMouseLeave = () => { targetRX = 0; targetRY = 0; targetRZ = 0; };
     container.addEventListener('mousemove', onMouseMove);
     container.addEventListener('mouseleave', onMouseLeave);
 
@@ -593,8 +623,10 @@ export function GoldCard3DCanvas({
       // Smooth card tilt
       cardMesh.rotation.x   = THREE.MathUtils.lerp(cardMesh.rotation.x, targetRX, 0.08);
       cardMesh.rotation.y   = THREE.MathUtils.lerp(cardMesh.rotation.y, targetRY, 0.08);
+      cardMesh.rotation.z   = THREE.MathUtils.lerp(cardMesh.rotation.z, targetRZ, 0.08);
       overlayMesh.rotation.x = cardMesh.rotation.x;
       overlayMesh.rotation.y = cardMesh.rotation.y;
+      overlayMesh.rotation.z = cardMesh.rotation.z;
 
       // Update camera-dependent uniforms every frame (rotation-driven, not time-driven)
       const tiltX = cardMesh.rotation.x / 0.35;

@@ -30,6 +30,7 @@ function mapRarityToPreset(rarityName?: string): string {
   if (r === 'rare') return 'rare-foil';
   if (r.includes('rainbow') || r.includes('hyper')) return 'rainbow-hyper';
   if (r.includes('gold')) return 'gold-relic';
+  if (r.includes('crown')) return 'crown-rare';
   if (r.includes('double immersive')) return 'double-immersive-rare';
   if (r.includes('immersive')) return 'immersive-rare';
   if (r.includes('secret') || r.includes('diamond')) return 'glass-shatter';
@@ -99,6 +100,7 @@ export default function CardDetailPage({ params }: PageProps) {
               if (level === 'STAR_1') return 'star-foil';
               if (level === 'STAR_2') return 'two-star-foil';
               if (level === 'GOLD')    return 'gold-relic';
+              if (level === 'CROWN')   return 'crown-rare';
               if (level === 'RAINBOW') return 'rainbow-hyper';
               if (level === 'IMMERSIVE') return 'immersive-rare';
               if (level === 'DOUBLE_IMMERSIVE') return 'double-immersive-rare';

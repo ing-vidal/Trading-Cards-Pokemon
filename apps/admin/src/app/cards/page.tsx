@@ -108,7 +108,7 @@ export default function CardsAdminPage() {
     { id: 'rarity-7',  name: '3-Star Rare',       color: '#f97316', shader: 'rainbow-hyper' },
     { id: 'rarity-8',  name: 'Immersive Rare',    color: '#e879f9', shader: 'immersive-rare' },
     { id: 'rarity-9',  name: 'Double Immersive',  color: '#c026d3', shader: 'double-immersive-rare' },
-    { id: 'rarity-10', name: 'Crown Rare',        color: '#eab308', shader: 'gold-relic' },
+    { id: 'rarity-10', name: 'Crown Rare',        color: '#eab308', shader: 'crown-rare' },
   ];
 
   // Fetch collections list for select dropdowns
@@ -163,7 +163,7 @@ export default function CardsAdminPage() {
               else if (level === 'DOUBLE_RARE')   shader = 'double-rare-foil';
               else if (level === 'STAR_1')         shader = 'star-foil';
               else if (level === 'STAR_2')         shader = 'two-star-foil';
-              else if (level === 'CROWN')            shader = 'gold-relic';
+              else if (level === 'CROWN')            shader = 'crown-rare';
               else if (level === 'IMMERSIVE') shader = 'immersive-rare';
               else if (level === 'DOUBLE_IMMERSIVE') shader = 'double-immersive-rare';
               else if (level === 'STAR_2' || level === 'STAR_3') shader = 'rainbow-hyper';

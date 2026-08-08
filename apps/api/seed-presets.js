@@ -32,6 +32,14 @@ async function main() {
       intensity: 75,
     },
     {
+      id: 'preset-crown-rare-001',
+      name: 'Crown Gold Foil',
+      shader: 'crown-rare',
+      material: 'CrownGoldBandMaterial',
+      foil: 'crown-horizontal-bands',
+      intensity: 95,
+    },
+    {
       id: 'preset-glass-shatter-001',
       name: 'Diamond Shattered Glass',
       shader: 'glass-shatter',
@@ -88,6 +96,7 @@ async function main() {
     { name: 'Immersive Rare', presetId: 'preset-immersive-rare-001' },
     { name: 'Double Immersive', presetId: 'preset-double-immersive-001' },
     { name: 'Gold Ultra Rare', presetId: 'preset-gold-relic-001' },
+    { name: 'Crown Rare', presetId: 'preset-crown-rare-001' },
     { name: 'Rainbow Hyper Rare', presetId: 'preset-rainbow-hyper-001' },
     { name: 'Promotional', presetId: 'preset-promo-glow-001' },
   ];

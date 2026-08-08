@@ -111,9 +111,8 @@ export function Card3DCanvas({
   width = '100%',
   height = '520px',
 }: Card3DCanvasProps) {
-  // ── Premium Gold Renderer ──────────────────────────────────────────────────
-  // Delegate to the full 9-layer PBR pipeline for gold-relic preset only.
-  if (presetId === 'gold-relic') {
+  // ── Premium metallic renderers ─────────────────────────────────────────────
+  if (presetId === 'gold-relic' || presetId === 'crown-rare') {
     return (
       <GoldCard3DCanvas
         imageUrl={imageUrl}
@@ -121,6 +120,7 @@ export function Card3DCanvas({
         width={width}
         height={height}
         showEditor={false}
+        variant={presetId === 'crown-rare' ? 'crown' : 'gold'}
       />
     );
   }
