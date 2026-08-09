@@ -119,8 +119,11 @@ const energyMap = {
   'Magia': 'Fantasma',
   'Metálica': 'Metálico',
   'Metal': 'Metálico',
+  'Volador': 'Incoloro',
   'Incolora': 'Incoloro',
-  'Oscura': 'Oscuridad',
+  'Incoloro': 'Incoloro',
+  'Oscura': 'Oscura',
+  'Oscuridad': 'Oscura',
 };
 
 const cards = rawCards.split('\n').map((line) => {
