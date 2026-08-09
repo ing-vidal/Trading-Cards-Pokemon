@@ -72,7 +72,9 @@ async function bootstrap() {
         forbidNonWhitelisted: true,
         transform: true,
     }));
-    const uploadsDir = path.resolve(process.cwd(), 'storage', 'uploads');
+    const uploadsDir = process.env.UPLOAD_DIR
+        ? path.resolve(process.env.UPLOAD_DIR)
+        : path.resolve(process.cwd(), 'storage', 'uploads');
     app.useStaticAssets(uploadsDir, { prefix: '/uploads/' });
     const port = Number(process.env.PORT || 4000);
     await app.listen(port, '0.0.0.0');

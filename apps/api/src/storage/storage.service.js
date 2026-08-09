@@ -86,7 +86,9 @@ let StorageService = (() => {
             __runInitializers(_classThis, _classExtraInitializers);
         }
         logger = new common_1.Logger(StorageService.name);
-        uploadDir = path.resolve(process.cwd(), 'storage', 'uploads');
+        uploadDir = process.env.UPLOAD_DIR
+            ? path.resolve(process.env.UPLOAD_DIR)
+            : path.resolve(process.cwd(), 'storage', 'uploads');
         onModuleInit() {
             if (!fs.existsSync(this.uploadDir)) {
                 fs.mkdirSync(this.uploadDir, { recursive: true });
@@ -99,7 +101,7 @@ let StorageService = (() => {
             const filePath = path.join(this.uploadDir, filename);
             await fs.promises.writeFile(filePath, file.buffer);
             const relativePath = `/uploads/${filename}`;
-            const baseUrl = process.env.API_URL || process.env.WEB_URL || 'https://trading-cards-pokemon.onrender.com';
+            const baseUrl = (process.env.API_URL || 'https://trading-cards-pokemon.onrender.com').replace(/\/$/, '');
             const url = `${baseUrl}/uploads/${filename}`;
             this.logger.log(`Archivo guardado exitosamente: ${filename} (${file.size} bytes)`);
             return {

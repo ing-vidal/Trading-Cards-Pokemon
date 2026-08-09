@@ -137,7 +137,7 @@ let CardsService = (() => {
                 throw new common_1.BadRequestException('Solo las cartas Pokémon pueden tener tipo de energía');
             }
             const baseSlug = (dto.slug || dto.name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
-            const slug = `${baseSlug}-${Date.now().toString().slice(-4)}`;
+            const slug = `${baseSlug}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
             // Resolve or fallback Collection, Rarity, Category
             let collectionId = dto.collectionId;
             if (!collectionId) {

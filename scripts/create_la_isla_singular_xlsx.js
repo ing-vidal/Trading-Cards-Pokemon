@@ -27,12 +27,12 @@ Lumineon|A1a-021|La Isla Singular|Agua|Dos Diamantes
 Chewtle|A1a-022|La Isla Singular|Agua|Un Diamante
 Drednaw|A1a-023|La Isla Singular|Agua|Dos Diamantes
 Cramorant|A1a-024|La Isla Singular|Agua|Un Diamante
-Pikachu|A1a-025|La Isla Singular|Rayo|Un Diamante
-Raichu|A1a-026|La Isla Singular|Rayo|Tres Diamantes
-Electabuzz|A1a-027|La Isla Singular|Rayo|Dos Diamantes
-Joltik|A1a-028|La Isla Singular|Rayo|Un Diamante
-Galvantula|A1a-029|La Isla Singular|Rayo|Dos Diamantes
-Dedenne|A1a-030|La Isla Singular|Rayo|Un Diamante
+Pikachu|A1a-025|La Isla Singular|Eléctrico|Un Diamante
+Raichu|A1a-026|La Isla Singular|Eléctrico|Tres Diamantes
+Electabuzz|A1a-027|La Isla Singular|Eléctrico|Dos Diamantes
+Joltik|A1a-028|La Isla Singular|Eléctrico|Un Diamante
+Galvantula|A1a-029|La Isla Singular|Eléctrico|Dos Diamantes
+Dedenne|A1a-030|La Isla Singular|Eléctrico|Un Diamante
 Mew|A1a-031|La Isla Singular|Psíquico|Tres Diamantes
 Mew ex|A1a-032|La Isla Singular|Psíquico|Cuatro Diamantes
 Sigilyph|A1a-033|La Isla Singular|Psíquico|Dos Diamantes
@@ -75,7 +75,7 @@ Exeggutor|A1a-069|La Isla Singular|Planta|Una Estrella
 Serperior|A1a-070|La Isla Singular|Planta|Una Estrella
 Salandit|A1a-071|La Isla Singular|Guego|Una Estrella
 Vaporeon|A1a-072|La Isla Singular|Agua|Una Estrella
-Dedenne|A1a-073|La Isla Singular|Rayo|Una Estrella
+Dedenne|A1a-073|La Isla Singular|Eléctrico|Una Estrella
 Marshadow|A1a-074|La Isla Singular|Lucha|Una Estrella
 Celebi ex|A1a-075|La Isla Singular|Planta|Dos Estrellas
 Gyarados ex|A1a-076|La Isla Singular|Agua|Dos Estrellas

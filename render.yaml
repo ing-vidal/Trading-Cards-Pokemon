@@ -25,5 +25,7 @@ services:
         sync: false
       - key: API_URL
         value: https://trading-cards-pokemon.onrender.com
+      - key: UPLOAD_DIR
+        value: /opt/render/project/src/apps/api/storage/uploads
       - key: ALLOWED_ORIGINS
         value: https://trading-cards-pokemon-web.vercel.app,https://trading-cards-pokemon-admin.vercel.app

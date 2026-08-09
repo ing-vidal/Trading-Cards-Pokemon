@@ -684,6 +684,18 @@ export default function CardsAdminPage() {
       return lastDot > 0 ? filename.slice(0, lastDot) : filename;
     };
 
+    const fetchWithRetry = async (url: string, options: RequestInit, attempts = 3): Promise<Response> => {
+      for (let attempt = 1; attempt <= attempts; attempt += 1) {
+        try {
+          return await fetch(url, options);
+        } catch (error) {
+          if (attempt === attempts) throw error;
+          await new Promise((resolve) => setTimeout(resolve, 750 * attempt));
+        }
+      }
+      throw new Error('Request failed after retries');
+    };
+
     // process rows sequentially, normalize filenames and provide feedback
     let processed = 0;
     let failed = 0;
@@ -788,9 +800,9 @@ export default function CardsAdminPage() {
         let res: Response | null = null;
         const existingCardId = r.id || cards.find((card) => card.number === String(r.number))?.id;
         if (existingCardId) {
-          res = await fetch(`${API_BASE_URL}/api/cards/${existingCardId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+          res = await fetchWithRetry(`${API_BASE_URL}/api/cards/${existingCardId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         } else {
-          res = await fetch(`${API_BASE_URL}/api/cards`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+          res = await fetchWithRetry(`${API_BASE_URL}/api/cards`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         }
 
         if (!res || !res.ok) {

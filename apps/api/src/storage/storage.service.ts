@@ -5,7 +5,9 @@ import * as path from 'path';
 @Injectable()
 export class StorageService implements OnModuleInit {
   private readonly logger = new Logger(StorageService.name);
-  private readonly uploadDir = path.resolve(process.cwd(), 'storage', 'uploads');
+  private readonly uploadDir = process.env.UPLOAD_DIR
+    ? path.resolve(process.env.UPLOAD_DIR)
+    : path.resolve(process.cwd(), 'storage', 'uploads');
 
   onModuleInit() {
     if (!fs.existsSync(this.uploadDir)) {
@@ -21,8 +23,7 @@ export class StorageService implements OnModuleInit {
 
     await fs.promises.writeFile(filePath, file.buffer);
     const relativePath = `/uploads/${filename}`;
-    const configuredBaseUrl = process.env.API_URL || 'https://trading-cards-pokemon.onrender.com';
-    const baseUrl = configuredBaseUrl.replace('tcgvision-api.onrender.com', 'trading-cards-pokemon.onrender.com');
+    const baseUrl = (process.env.API_URL || 'https://trading-cards-pokemon.onrender.com').replace(/\/$/, '');
     const url = `${baseUrl}/uploads/${filename}`;
 
     this.logger.log(`Archivo guardado exitosamente: ${filename} (${file.size} bytes)`);
